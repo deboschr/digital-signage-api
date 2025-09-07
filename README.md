@@ -1,1 +1,1 @@
-# Digital Signage for Airport
+# Digital Signage API for Airport
