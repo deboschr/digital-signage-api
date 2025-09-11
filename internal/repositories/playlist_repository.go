@@ -12,6 +12,11 @@ type PlaylistRepository interface {
 	Create(playlist *models.Playlist) error
 	Update(playlist *models.Playlist) error
 	Delete(id uint) error
+
+		// PlaylistContent
+	AddContents(playlistID uint, contentIDs []uint) error
+	UpdateOrders(playlistID uint, contents []models.PlaylistContent) error
+	RemoveContents(playlistID uint, contentIDs []uint) error
 }
 
 type playlistRepository struct {
@@ -55,4 +60,35 @@ func (r *playlistRepository) Update(playlist *models.Playlist) error {
 
 func (r *playlistRepository) Delete(id uint) error {
 	return r.db.Delete(&models.Playlist{}, "playlist_id = ?", id).Error
+}
+
+
+func (r *playlistRepository) AddContents(playlistID uint, contentIDs []uint) error {
+	for i, cid := range contentIDs {
+		pc := models.PlaylistContent{
+			PlaylistID: playlistID,
+			ContentID:  cid,
+			Order:      i + 1,
+		}
+		if err := r.db.Create(&pc).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *playlistRepository) UpdateOrders(playlistID uint, contents []models.PlaylistContent) error {
+	for _, c := range contents {
+		if err := r.db.Model(&models.PlaylistContent{}).
+			Where("playlist_id = ? AND content_id = ?", playlistID, c.ContentID).
+			Update("order", c.Order).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *playlistRepository) RemoveContents(playlistID uint, contentIDs []uint) error {
+	return r.db.Where("playlist_id = ? AND content_id IN ?", playlistID, contentIDs).
+		Delete(&models.PlaylistContent{}).Error
 }

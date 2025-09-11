@@ -11,6 +11,11 @@ type PlaylistService interface {
 	CreatePlaylist(playlist *models.Playlist) error
 	UpdatePlaylist(playlist *models.Playlist) error
 	DeletePlaylist(id uint) error
+
+		// PlaylistContent
+	AddContents(playlistID uint, contentIDs []uint) error
+	UpdateOrders(playlistID uint, contents []models.PlaylistContent) error
+	RemoveContents(playlistID uint, contentIDs []uint) error
 }
 
 type playlistService struct {
@@ -39,4 +44,17 @@ func (s *playlistService) UpdatePlaylist(playlist *models.Playlist) error {
 
 func (s *playlistService) DeletePlaylist(id uint) error {
 	return s.repo.Delete(id)
+}
+
+
+func (s *playlistService) AddContents(playlistID uint, contentIDs []uint) error {
+	return s.repo.AddContents(playlistID, contentIDs)
+}
+
+func (s *playlistService) UpdateOrders(playlistID uint, contents []models.PlaylistContent) error {
+	return s.repo.UpdateOrders(playlistID, contents)
+}
+
+func (s *playlistService) RemoveContents(playlistID uint, contentIDs []uint) error {
+	return s.repo.RemoveContents(playlistID, contentIDs)
 }

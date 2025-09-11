@@ -22,4 +22,13 @@ func PlaylistRoutes(r *gin.RouterGroup, db *gorm.DB) {
 		playlist.PATCH("", controller.UpdatePlaylist)
 		playlist.DELETE("/:id", controller.DeletePlaylist)
 	}
+
+
+	content := r.Group("/playlist/content")
+	{
+		content.POST("", controller.CreatePlaylistContent)
+		content.PATCH("", controller.UpdatePlaylistContent)
+		content.DELETE("", controller.DeletePlaylistContent)
+	}
+
 }

@@ -1,0 +1,13 @@
+{
+	"PlaylistID": 1,
+	"Contents": [
+		{
+			"ContentID": 1,
+			"Order": 2
+		},
+		{
+			"ContentID": 2,
+			"Order": 1
+		}
+	]
+}

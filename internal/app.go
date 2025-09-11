@@ -3,6 +3,7 @@ package internal
 import (
 	"digital_signage_api/internal/db"
 	"digital_signage_api/internal/routes"
+	"digital_signage_api/internal/tcp"
 
 	// "digital_signage_api/internal/routes"
 	"net/http"
@@ -59,6 +60,10 @@ func InitApp() {
 		routes.ContentRoutes(api, db.DB)
 		routes.ScheduleRoutes(api, db.DB)
 	}
+
+	// TCP
+	go tcp.StartTCPServer()
+
 
 	// run server
 	if err := r.Run(":8080"); err != nil {
