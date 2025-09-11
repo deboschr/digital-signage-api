@@ -3,11 +3,18 @@ package controllers
 import (
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/services"
+	"fmt"
 	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
+
+
 
 type ContentController struct {
 	service services.ContentService
@@ -37,17 +44,58 @@ func (c *ContentController) GetContent(ctx *gin.Context) {
 }
 
 func (c *ContentController) CreateContent(ctx *gin.Context) {
-	var content models.Content
-	if err := ctx.ShouldBindJSON(&content); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := c.service.CreateContent(&content); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	ctx.JSON(http.StatusCreated, content)
+    file, err := ctx.FormFile("file")
+    if err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
+        return
+    }
+
+    // simpan file ke folder contents/
+    safeName := url.PathEscape(file.Filename)
+    savePath := filepath.Join("contents", safeName)
+    if err := ctx.SaveUploadedFile(file, savePath); err != nil {
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    // title = nama file asli
+    title := file.Filename
+
+    // type = dari ekstensi
+    ext := strings.ToLower(filepath.Ext(file.Filename))
+    ctype := "image"
+    if ext == ".mp4" || ext == ".mov" || ext == ".avi" {
+        ctype = "video"
+    }
+
+    // duration default = 0 (foto)
+    duration := 0
+    if ctype == "video" {
+        duration = 0 // TODO: hitung pakai ffprobe kalau mau real
+    }
+
+    // ambil base URL dari env
+    baseURL := os.Getenv("APP_BASE_URL")
+    if baseURL == "" {
+        baseURL = "http://localhost:8080"
+    }
+
+    content := models.Content{
+        Title:    title,
+        Type:     ctype,
+        Duration: duration,
+        FileURL:  fmt.Sprintf("%s/contents/%s", baseURL, safeName),
+    }
+
+    if err := c.service.CreateContent(&content); err != nil {
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    ctx.JSON(http.StatusCreated, content)
 }
+
+
 
 func (c *ContentController) UpdateContent(ctx *gin.Context) {
 	var content models.Content

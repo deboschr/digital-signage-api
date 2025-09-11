@@ -3,6 +3,7 @@ package internal
 import (
 	"digital_signage_api/internal/db"
 	"digital_signage_api/internal/routes"
+
 	// "digital_signage_api/internal/routes"
 	"net/http"
 
@@ -26,9 +27,11 @@ func InitApp() {
 	// 	panic("failed to migrate database: " + err.Error())
 	// }
 
+	
+	
 	// init Gin
 	r := gin.Default()
-
+	
 	// health endpoints
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -42,6 +45,9 @@ func InitApp() {
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "ready"})
 	})
+	
+	// folder statis untuk menyimpan konten
+	r.Static("/contents", "./contents")
 
 	// group API v1
 	api := r.Group("/api/v1")
