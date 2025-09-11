@@ -4,9 +4,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     env_file:
-      - .env   # load semua env dari file .env di VPS
-    environment:
-      - PORT=8080 # ini tetap boleh, override APP_PORT kalau mau
+      - .env   # hanya untuk lokal/staging manual
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]

@@ -1,21 +1,16 @@
-# -------- build stage --------
-FROM golang:1.23 as build
+FROM golang:1.23 AS build
 WORKDIR /app
 
-# cache deps
-COPY go.mod .
+COPY go.mod go.sum ./
 RUN go mod download
 
-# source
 COPY . .
+RUN go build -ldflags="-s -w" -o signage-api ./cmd/api
 
-# build static binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o server ./cmd/server
-
-# -------- run stage (scratch) --------
-FROM scratch
+FROM gcr.io/distroless/base-debian12
 WORKDIR /app
-COPY --from=build /app/server /app/server
+COPY --from=build /app/signage-api .
+
 EXPOSE 8080
-USER 10001:10001
-ENTRYPOINT ["/app/server"]
+USER nonroot:nonroot
+ENTRYPOINT ["./signage-api"]

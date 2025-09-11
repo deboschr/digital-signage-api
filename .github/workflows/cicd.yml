@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write            # untuk push ke GHCR
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: SSH deploy (pull & restart)
+      - name: SSH deploy (pull image & run container)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -58,9 +58,18 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
-            cd /opt/digital-signage/digital-signage-api
-            git fetch origin master
-            git reset --hard origin/master
-            sudo docker compose pull
-            sudo docker compose up -d --remove-orphans
-            sudo docker image prune -f
+            docker pull ghcr.io/deboschr/digital-signage-api:latest
+            docker stop signage-api || true
+            docker rm signage-api || true
+            docker run -d \
+              --name signage-api \
+              -p 8080:8080 \
+              -e APP_PORT=${{ secrets.APP_PORT }} \
+              -e APP_ENV=production \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
+              -e DB_PORT=${{ secrets.DB_PORT }} \
+              -e DB_USER=${{ secrets.DB_USER }} \
+              -e DB_PASS=${{ secrets.DB_PASS }} \
+              -e DB_NAME=${{ secrets.DB_NAME }} \
+              ghcr.io/deboschr/digital-signage-api:latest
+            docker image prune -f
