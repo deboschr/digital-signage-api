@@ -6,6 +6,6 @@ type PlaylistContent struct {
 	Order      int  `gorm:"column:order"`
 
 	// ON DELETE CASCADE agar pivot ikut hilang kalau parent dihapus
-	Playlist Playlist `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
-	Content  Content  `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
+	Playlist *Playlist `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
+	Content  *Content  `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
 }

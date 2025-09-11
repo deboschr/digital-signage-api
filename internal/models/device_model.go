@@ -9,5 +9,5 @@ type Device struct {
 	CreatedAt int64  `gorm:"autoCreateTime:milli;column:created_at"`
 	UpdatedAt int64  `gorm:"autoUpdateTime:milli;column:updated_at"`
 
-	Airport Airport `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
+	Airport *Airport `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 }

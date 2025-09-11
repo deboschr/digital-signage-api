@@ -2,8 +2,8 @@ package internal
 
 import (
 	"digital_signage_api/internal/db"
-	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/routes"
+	// "digital_signage_api/internal/routes"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,17 +14,17 @@ func InitApp() {
 	db.Init()
 
 	// migrasi database
-	if err := db.DB.AutoMigrate(
-		&models.Airport{},
-		&models.User{},
-		&models.Device{},
-		&models.Playlist{},
-		&models.Content{},
-		&models.PlaylistContent{},
-		&models.Schedule{},
-	); err != nil {
-		panic("failed to migrate database: " + err.Error())
-	}
+	// if err := db.DB.AutoMigrate(
+	// 	&models.Airport{},
+	// 	&models.User{},
+	// 	&models.Device{},
+	// 	&models.Playlist{},
+	// 	&models.Content{},
+	// 	&models.PlaylistContent{},
+	// 	&models.Schedule{},
+	// ); err != nil {
+	// 	panic("failed to migrate database: " + err.Error())
+	// }
 
 	// init Gin
 	r := gin.Default()

@@ -10,8 +10,8 @@ type Content struct {
 	UpdatedAt int64  `gorm:"autoUpdateTime:milli;column:updated_at"`
 
 	// Many-to-Many dengan Playlist
-	Playlists []Playlist `gorm:"many2many:playlist_contents;joinForeignKey:ContentID;joinReferences:PlaylistID"`
+	Playlists *[]Playlist `gorm:"many2many:playlist_contents;joinForeignKey:ContentID;joinReferences:PlaylistID"`
 
 	// Relasi tambahan
-	PlaylistContent []PlaylistContent `gorm:"foreignKey:ContentID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
+	PlaylistContent *[]PlaylistContent `gorm:"foreignKey:ContentID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
 }
