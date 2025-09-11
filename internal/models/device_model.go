@@ -1,11 +1,11 @@
 package models
 
-import "time"
-
 type Device struct {
-    ID        uint      `gorm:"primaryKey"`
-    Name      string    `gorm:"size:100;not null"`
-    IPAddress string    `gorm:"size:50;unique"`
-    CreatedAt time.Time
-    UpdatedAt time.Time
+	DeviceID  uint   `gorm:"primaryKey;column:device_id"`
+	Name      string `gorm:"size:100;not null;column:name"`
+	IpAddress string `gorm:"size:50;unique;column:ip_address"`
+	Status    string `gorm:"size:20;column:status"` // online/offline
+	AirportID uint   `gorm:"not null;column:airport_id"`
+	CreatedAt int64  `gorm:"autoCreateTime:milli;column:created_at"`
+	UpdatedAt int64  `gorm:"autoUpdateTime:milli;column:updated_at"`
 }
