@@ -58,8 +58,8 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
         return
     }
 
-    // title = nama file asli
-    title := file.Filename
+    // title = nama file asli + ekstensi
+    title := filepath.Base(file.Filename)
 
     // type = dari ekstensi
     ext := strings.ToLower(filepath.Ext(file.Filename))
@@ -94,6 +94,7 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 
     ctx.JSON(http.StatusCreated, content)
 }
+
 
 
 
