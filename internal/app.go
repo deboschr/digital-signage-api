@@ -4,6 +4,7 @@ import (
 	"digital_signage_api/internal/db"
 	"digital_signage_api/internal/routes"
 	"digital_signage_api/internal/tcp"
+	"os"
 
 	// "digital_signage_api/internal/routes"
 	"net/http"
@@ -48,7 +49,9 @@ func InitApp() {
 	})
 	
 	// folder statis untuk menyimpan konten
-	r.Static("/contents", "./contents")
+	staticPath := os.Getenv("STATIC_PATH") // "/contents"
+	r.Static(staticPath, "."+staticPath)
+
 
 	// group API v1
 	api := r.Group("/api/v1")

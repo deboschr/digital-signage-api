@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/url"
+	"os"
 	"sync"
 	"time"
 )
@@ -100,12 +102,28 @@ func sendActivePlaylist(conn net.Conn) {
 		Contents:   []ContentResponse{},
 	}
 
+	baseHost := os.Getenv("APP_HOST")
+	if baseHost == "" {
+		baseHost = "localhost"
+	}
+
+	basePort := os.Getenv("APP_PORT")
+	if basePort == "" {
+		basePort = "8080"
+	}
+
+	staticPath := os.Getenv("STATIC_PATH")
+	if staticPath == "" {
+		staticPath = "/contents"
+	}
+
 	for _, pc := range playlist.PlaylistContent {
 		if pc.Content != nil {
+			filename := url.PathEscape(pc.Content.Title)
 			payload.Contents = append(payload.Contents, ContentResponse{
 				ContentID: pc.ContentID,
 				Title:     pc.Content.Title,
-				URL:       pc.Content.FileURL,
+				URL:       fmt.Sprintf("http://%s:%s%s/%s", baseHost, basePort, staticPath, filename),
 				Order:     pc.Order,
 			})
 		}

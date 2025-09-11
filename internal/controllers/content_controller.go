@@ -3,10 +3,7 @@ package controllers
 import (
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/services"
-	"fmt"
 	"net/http"
-	"net/url"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -51,7 +48,6 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
     }
 
     // simpan file ke folder contents/
-    safeName := url.PathEscape(file.Filename)
     savePath := filepath.Join("contents", file.Filename)
     if err := ctx.SaveUploadedFile(file, savePath); err != nil {
         ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -74,17 +70,10 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
         duration = 0 // TODO: hitung pakai ffprobe kalau mau real
     }
 
-    // ambil base URL dari env
-    baseURL := os.Getenv("APP_BASE_URL")
-    if baseURL == "" {
-        baseURL = "http://localhost:8080"
-    }
-
     content := models.Content{
         Title:    title,
         Type:     ctype,
         Duration: duration,
-        FileURL:  fmt.Sprintf("%s/contents/%s", baseURL, safeName),
     }
 
     if err := c.service.CreateContent(&content); err != nil {
