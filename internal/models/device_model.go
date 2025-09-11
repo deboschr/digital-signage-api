@@ -8,4 +8,6 @@ type Device struct {
 	AirportID uint   `gorm:"not null;column:airport_id"`
 	CreatedAt int64  `gorm:"autoCreateTime:milli;column:created_at"`
 	UpdatedAt int64  `gorm:"autoUpdateTime:milli;column:updated_at"`
+
+	Airport Airport `gorm:"foreignKey:AirportID"`
 }
