@@ -66,7 +66,9 @@ jobs:
               --restart unless-stopped \
               --network host \
               -e APP_PORT=${{ secrets.APP_PORT }} \
-              -e APP_ENV=production \
+              -e APP_HOST=${{ secrets.APP_HOST }} \
+              -e APP_ENV=${{ secrets.APP_ENV }} \
+              -e STATIC_PATH=${{ secrets.STATIC_PATH }} \
               -e DB_HOST=${{ secrets.DB_HOST }} \
               -e DB_PORT=${{ secrets.DB_PORT }} \
               -e DB_USER=${{ secrets.DB_USER }} \
