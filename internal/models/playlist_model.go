@@ -9,7 +9,4 @@ type Playlist struct {
 	UpdatedAt   int64  `gorm:"autoUpdateTime:milli;column:updated_at"`
 
 	Airport Airport `gorm:"foreignKey:AirportID;references:AirportID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
-
-	Contents  []Content  `gorm:"many2many:playlist_contents;"`
-	Schedules []Schedule `gorm:"foreignKey:PlaylistID;references:PlaylistID"`
 }
