@@ -2,23 +2,53 @@ package internal
 
 import (
 	"digital_signage_api/internal/db"
-	"digital_signage_api/internal/models"
+	// "digital_signage_api/internal/models"
 	"digital_signage_api/internal/routes"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func InitApp() {
-    db.Init()
+	// init DB
+	db.Init()
 
-    db.DB.AutoMigrate(
-        &models.User{},
-        &models.Airport{},
-        &models.Device{},
-        &models.Channel{},
-        &models.Content{},
-        &models.Schedule{},
-    )
+    // migrasi database
+    // db.DB.AutoMigrate(
+    //     &models.User{},
+    //     &models.Airport{},
+    //     &models.Device{},
+    //     &models.Channel{},
+    //     &models.Content{},
+    //     &models.Schedule{},
+    // )
 
+	// init Gin
+	r := gin.Default()
 
-    r := routes.SetupRouter()
-    r.Run(":8080")
+	// health endpoints
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+	r.GET("/ready", func(c *gin.Context) {
+		sqlDB, err := db.DB.DB()
+		if err != nil || sqlDB.Ping() != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "degraded"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ready"})
+	})
+
+    // kumpulin semua route entity di sini
+	// group API v1
+	api := r.Group("/api/v1")
+	{
+		routes.RegisterDeviceRoutes(api)
+		// routes.RegisterUserRoutes(api)
+		// routes.RegisterAirportRoutes(api)
+		// routes.RegisterChannelRoutes(api)
+	}
+
+	// run server
+	r.Run(":8080")
 }
