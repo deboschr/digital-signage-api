@@ -52,7 +52,7 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 
     // simpan file ke folder contents/
     safeName := url.PathEscape(file.Filename)
-    savePath := filepath.Join("contents", safeName)
+    savePath := filepath.Join("contents", file.Filename)
     if err := ctx.SaveUploadedFile(file, savePath); err != nil {
         ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
