@@ -6,17 +6,20 @@ import (
 	"digital_signage_api/internal/services"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func RegisterDeviceRoutes(rg *gin.RouterGroup) {
-    // wiring dependency (repo → service → controller)
-    repo := repositories.NewDeviceRepository()
-    service := services.NewDeviceService(repo)
-    controller := controllers.NewDeviceController(service)
+func DeviceRoutes(r *gin.RouterGroup, db *gorm.DB) {
+	repo := repositories.NewDeviceRepository(db)
+	service := services.NewDeviceService(repo)
+	controller := controllers.NewDeviceController(service)
 
-    devices := rg.Group("/devices")
-    {
-        devices.GET("/", controller.GetDevices)
-        devices.POST("/", controller.CreateDevice)
-    }
+	device := r.Group("/device")
+	{
+		device.GET("", controller.GetDevices)
+		device.GET("/:id", controller.GetDevice)
+		device.POST("", controller.CreateDevice)
+		device.PATCH("", controller.UpdateDevice)
+		device.DELETE("/:id", controller.DeleteDevice)
+	}
 }
