@@ -21,7 +21,7 @@ func InitApp() {
         &models.Channel{},
         &models.Content{},
         &models.Schedule{},
-    )
+   )
 
 	// init Gin
 	r := gin.Default()
