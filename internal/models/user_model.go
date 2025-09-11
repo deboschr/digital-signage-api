@@ -9,5 +9,5 @@ type User struct {
 	CreatedAt int64  `gorm:"autoCreateTime:milli;column:created_at"`
 	UpdatedAt int64  `gorm:"autoUpdateTime:milli;column:updated_at"`
 
-	Airport Airport `gorm:"foreignKey:AirportID;references:AirportID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE"`
+	Airport Airport `gorm:"constraint:OnDelete:SET NULL,OnUpdate:CASCADE"`
 }

@@ -9,5 +9,5 @@ type Schedule struct {
 	CreatedAt     int64  `gorm:"autoCreateTime:milli;column:created_at"`
 	UpdatedAt     int64  `gorm:"autoUpdateTime:milli;column:updated_at"`
 
-	Playlist Playlist `gorm:"foreignKey:PlaylistID;references:PlaylistID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
+	Playlist Playlist `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 }
