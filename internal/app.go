@@ -2,7 +2,7 @@ package internal
 
 import (
 	"digital_signage_api/internal/db"
-	// "digital_signage_api/internal/models"
+	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/routes"
 	"net/http"
 
@@ -14,21 +14,21 @@ func InitApp() {
 	db.Init()
 
     // migrasi database
-    // db.DB.AutoMigrate(
-    //     &models.User{},
-    //     &models.Airport{},
-    //     &models.Device{},
-    //     &models.Channel{},
-    //     &models.Content{},
-    //     &models.Schedule{},
-    // )
+   db.DB.AutoMigrate(
+        &models.User{},
+        &models.Airport{},
+        &models.Device{},
+        &models.Channel{},
+        &models.Content{},
+        &models.Schedule{},
+    )
 
 	// init Gin
 	r := gin.Default()
 
 	// health endpoints
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+		c.JSON(200, gin.H{"status": "ok"})
 	})
 	r.GET("/ready", func(c *gin.Context) {
 		sqlDB, err := db.DB.DB()
@@ -36,7 +36,7 @@ func InitApp() {
 			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "degraded"})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"status": "ready"})
+		c.JSON(200, gin.H{"status": "ready"})
 	})
 
     // kumpulin semua route entity di sini
