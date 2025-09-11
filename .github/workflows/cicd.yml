@@ -63,6 +63,8 @@ jobs:
             sudo docker rm signage-api || true
             sudo docker run -d \
               --name signage-api \
+              --restart unless-stopped \
+              --dns=8.8.8.8 --dns=1.1.1.1 \
               -p 127.0.0.1:8080:8080 \
               -e APP_PORT=${{ secrets.APP_PORT }} \
               -e APP_ENV=production \
