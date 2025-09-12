@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"digital_signage_api/internal/models"
+	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/services"
 	"net/http"
 	"strconv"
@@ -18,6 +18,7 @@ func NewUserController(service services.UserService) *UserController {
 }
 
 // --- Auth ---
+// POST /auth/signin
 func (c *UserController) SignIn(ctx *gin.Context) {
 	var payload struct {
 		Username string `json:"username" binding:"required"`
@@ -37,25 +38,30 @@ func (c *UserController) SignIn(ctx *gin.Context) {
 	// TODO: generate JWT nanti
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "signin success",
-		"user":    user,
+		"user":    user, // bisa SummaryUserDTO atau DetailUserDTO sesuai kebutuhan
 	})
 }
 
+// POST /auth/signout
 func (c *UserController) SignOut(ctx *gin.Context) {
 	// TODO: invalidate JWT/session
 	ctx.JSON(http.StatusOK, gin.H{"message": "signout success"})
 }
 
 // --- CRUD User ---
+
+// GET /users
 func (c *UserController) GetUsers(ctx *gin.Context) {
 	users, err := c.service.GetAllUsers()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	// users = []dto.SummaryUserDTO
 	ctx.JSON(http.StatusOK, users)
 }
 
+// GET /users/:id
 func (c *UserController) GetUser(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	user, err := c.service.GetUserByID(uint(id))
@@ -63,35 +69,47 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return
 	}
+	// user = dto.DetailUserDTO
 	ctx.JSON(http.StatusOK, user)
 }
 
+// POST /users
 func (c *UserController) CreateUser(ctx *gin.Context) {
-	var user models.User
-	if err := ctx.ShouldBindJSON(&user); err != nil {
+	var req dto.CreateUserReqDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.service.CreateUser(&user); err != nil {
+
+	res, err := c.service.CreateUser(req)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusCreated, user)
+
+	// res = dto.CreateUserResDTO
+	ctx.JSON(http.StatusCreated, res)
 }
 
+// PUT/PATCH /users/:id
 func (c *UserController) UpdateUser(ctx *gin.Context) {
-	var user models.User
-	if err := ctx.ShouldBindJSON(&user); err != nil {
+	var req dto.UpdateUserReqDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.service.UpdateUser(&user); err != nil {
+
+	res, err := c.service.UpdateUser(req)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, user)
+
+	// res = dto.UpdateUserResDTO
+	ctx.JSON(http.StatusOK, res)
 }
 
+// DELETE /users/:id
 func (c *UserController) DeleteUser(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	if err := c.service.DeleteUser(uint(id)); err != nil {

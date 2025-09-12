@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"digital_signage_api/internal/models"
+	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/services"
 	"net/http"
 	"strconv"
@@ -17,15 +17,18 @@ func NewDeviceController(service services.DeviceService) *DeviceController {
 	return &DeviceController{service}
 }
 
+// GET /devices
 func (c *DeviceController) GetDevices(ctx *gin.Context) {
 	devices, err := c.service.GetAllDevices()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	// devices = []dto.SummaryDeviceDTO
 	ctx.JSON(http.StatusOK, devices)
 }
 
+// GET /devices/:id
 func (c *DeviceController) GetDevice(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	device, err := c.service.GetDeviceByID(uint(id))
@@ -33,35 +36,47 @@ func (c *DeviceController) GetDevice(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "device not found"})
 		return
 	}
+	// device = dto.DetailDeviceDTO
 	ctx.JSON(http.StatusOK, device)
 }
 
+// POST /devices
 func (c *DeviceController) CreateDevice(ctx *gin.Context) {
-	var device models.Device
-	if err := ctx.ShouldBindJSON(&device); err != nil {
+	var req dto.CreateDeviceReqDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.service.CreateDevice(&device); err != nil {
+
+	res, err := c.service.CreateDevice(req)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusCreated, device)
+
+	// res = dto.CreateDeviceResDTO
+	ctx.JSON(http.StatusCreated, res)
 }
 
+// PUT/PATCH /devices/:id
 func (c *DeviceController) UpdateDevice(ctx *gin.Context) {
-	var device models.Device
-	if err := ctx.ShouldBindJSON(&device); err != nil {
+	var req dto.UpdateDeviceReqDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.service.UpdateDevice(&device); err != nil {
+
+	res, err := c.service.UpdateDevice(req)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, device)
+
+	// res = dto.UpdateDeviceResDTO
+	ctx.JSON(http.StatusOK, res)
 }
 
+// DELETE /devices/:id
 func (c *DeviceController) DeleteDevice(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	if err := c.service.DeleteDevice(uint(id)); err != nil {

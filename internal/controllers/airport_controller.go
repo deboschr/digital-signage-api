@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"digital_signage_api/internal/models"
+	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/services"
 	"net/http"
 	"strconv"
@@ -17,15 +17,18 @@ func NewAirportController(service services.AirportService) *AirportController {
 	return &AirportController{service}
 }
 
+// GET /airports
 func (c *AirportController) GetAirports(ctx *gin.Context) {
 	airports, err := c.service.GetAllAirports()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	// airports = []dto.SummaryAirportDTO
 	ctx.JSON(http.StatusOK, airports)
 }
 
+// GET /airports/:id
 func (c *AirportController) GetAirport(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	airport, err := c.service.GetAirportByID(uint(id))
@@ -33,35 +36,47 @@ func (c *AirportController) GetAirport(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "airport not found"})
 		return
 	}
+	// airport = dto.DetailAirportDTO
 	ctx.JSON(http.StatusOK, airport)
 }
 
+// POST /airports
 func (c *AirportController) CreateAirport(ctx *gin.Context) {
-	var airport models.Airport
-	if err := ctx.ShouldBindJSON(&airport); err != nil {
+	var req dto.CreateAirportReqDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.service.CreateAirport(&airport); err != nil {
+
+	res, err := c.service.CreateAirport(req)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusCreated, airport)
+
+	// res = dto.CreateAirportResDTO
+	ctx.JSON(http.StatusCreated, res)
 }
 
+// PUT/PATCH /airports/:id
 func (c *AirportController) UpdateAirport(ctx *gin.Context) {
-	var airport models.Airport
-	if err := ctx.ShouldBindJSON(&airport); err != nil {
+	var req dto.UpdateAirportReqDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.service.UpdateAirport(&airport); err != nil {
+
+	res, err := c.service.UpdateAirport(req)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, airport)
+
+	// res = dto.UpdateAirportResDTO
+	ctx.JSON(http.StatusOK, res)
 }
 
+// DELETE /airports/:id
 func (c *AirportController) DeleteAirport(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	if err := c.service.DeleteAirport(uint(id)); err != nil {
