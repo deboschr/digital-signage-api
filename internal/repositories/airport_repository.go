@@ -22,21 +22,22 @@ func NewAirportRepository(db *gorm.DB) AirportRepository {
 	return &airportRepository{db}
 }
 
+// Untuk summary DTO → cukup field dasar
 func (r *airportRepository) FindAll() ([]models.Airport, error) {
-	
 	var airports []models.Airport
-	
 	err := r.db.
 		Select("airport_id", "name", "code", "address").
 		Find(&airports).Error
-	
 	return airports, err
 }
 
-
+// Untuk detail DTO → preload relasi penuh
 func (r *airportRepository) FindByID(id uint) (*models.Airport, error) {
 	var airport models.Airport
-	err := r.db.Preload("Devices").Preload("Playlists").Preload("Users").
+	err := r.db.
+		Preload("Devices").
+		Preload("Playlists").
+		Preload("Users").
 		First(&airport, "airport_id = ?", id).Error
 	if err != nil {
 		return nil, err

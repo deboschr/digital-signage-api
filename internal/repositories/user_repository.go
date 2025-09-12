@@ -23,24 +23,29 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db}
 }
 
+// Untuk summary list user → preload Airport juga supaya bisa dipakai DTO
 func (r *userRepository) FindAll() ([]models.User, error) {
 	var users []models.User
-	err := r.db.Find(&users).Error
+	err := r.db.Preload("Airport").Find(&users).Error
 	return users, err
 }
 
+// Untuk detail DTO → preload Airport wajib
 func (r *userRepository) FindByID(id uint) (*models.User, error) {
 	var user models.User
-	err := r.db.First(&user, "user_id = ?", id).Error
+	err := r.db.Preload("Airport").
+		First(&user, "user_id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
+// Untuk login (Authenticate) → cukup ambil user + password hash
 func (r *userRepository) FindByUsername(username string) (*models.User, error) {
 	var user models.User
-	err := r.db.First(&user, "username = ?", username).Error
+	err := r.db.Preload("Airport").
+		First(&user, "username = ?", username).Error
 	if err != nil {
 		return nil, err
 	}

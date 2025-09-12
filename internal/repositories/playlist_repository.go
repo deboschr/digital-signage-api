@@ -13,7 +13,7 @@ type PlaylistRepository interface {
 	Update(playlist *models.Playlist) error
 	Delete(id uint) error
 
-		// PlaylistContent
+	// PlaylistContent
 	AddContents(playlistID uint, contentIDs []uint) error
 	UpdateOrders(playlistID uint, contents []models.PlaylistContent) error
 	RemoveContents(playlistID uint, contentIDs []uint) error
@@ -27,22 +27,24 @@ func NewPlaylistRepository(db *gorm.DB) PlaylistRepository {
 	return &playlistRepository{db}
 }
 
+// Untuk summary list playlist
 func (r *playlistRepository) FindAll() ([]models.Playlist, error) {
 	var playlists []models.Playlist
 	err := r.db.
 		Preload("Airport").
 		Preload("Schedules").
-		Preload("Contents").
+		Preload("PlaylistContent.Content"). // penting! ambil pivot + content
 		Find(&playlists).Error
 	return playlists, err
 }
 
+// Untuk detail playlist lengkap
 func (r *playlistRepository) FindByID(id uint) (*models.Playlist, error) {
 	var playlist models.Playlist
 	err := r.db.
 		Preload("Airport").
 		Preload("Schedules").
-		Preload("Contents").
+		Preload("PlaylistContent.Content").
 		First(&playlist, "playlist_id = ?", id).Error
 	if err != nil {
 		return nil, err
@@ -62,7 +64,11 @@ func (r *playlistRepository) Delete(id uint) error {
 	return r.db.Delete(&models.Playlist{}, "playlist_id = ?", id).Error
 }
 
+// -----------------------------
+// Playlist Content management
+// -----------------------------
 
+// Tambah isi playlist
 func (r *playlistRepository) AddContents(playlistID uint, contentIDs []uint) error {
 	for i, cid := range contentIDs {
 		pc := models.PlaylistContent{
@@ -77,6 +83,7 @@ func (r *playlistRepository) AddContents(playlistID uint, contentIDs []uint) err
 	return nil
 }
 
+// Update urutan konten
 func (r *playlistRepository) UpdateOrders(playlistID uint, contents []models.PlaylistContent) error {
 	for _, c := range contents {
 		if err := r.db.Model(&models.PlaylistContent{}).
@@ -88,6 +95,7 @@ func (r *playlistRepository) UpdateOrders(playlistID uint, contents []models.Pla
 	return nil
 }
 
+// Hapus konten dari playlist
 func (r *playlistRepository) RemoveContents(playlistID uint, contentIDs []uint) error {
 	return r.db.Where("playlist_id = ? AND content_id IN ?", playlistID, contentIDs).
 		Delete(&models.PlaylistContent{}).Error

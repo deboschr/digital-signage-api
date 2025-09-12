@@ -22,15 +22,18 @@ func NewDeviceRepository(db *gorm.DB) DeviceRepository {
 	return &deviceRepository{db}
 }
 
+// Untuk summary list device → preload Airport supaya DTO bisa isi relasi
 func (r *deviceRepository) FindAll() ([]models.Device, error) {
 	var devices []models.Device
 	err := r.db.Preload("Airport").Find(&devices).Error
 	return devices, err
 }
 
+// Untuk detail DTO → preload Airport wajib
 func (r *deviceRepository) FindByID(id uint) (*models.Device, error) {
 	var device models.Device
-	err := r.db.Preload("Airport").First(&device, "device_id = ?", id).Error
+	err := r.db.Preload("Airport").
+		First(&device, "device_id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}

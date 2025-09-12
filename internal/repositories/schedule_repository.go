@@ -22,15 +22,18 @@ func NewScheduleRepository(db *gorm.DB) ScheduleRepository {
 	return &scheduleRepository{db}
 }
 
+// Untuk summary list → preload Playlist agar DTO bisa mapping relasi
 func (r *scheduleRepository) FindAll() ([]models.Schedule, error) {
 	var schedules []models.Schedule
 	err := r.db.Preload("Playlist").Find(&schedules).Error
 	return schedules, err
 }
 
+// Untuk detail DTO → preload Playlist wajib
 func (r *scheduleRepository) FindByID(id uint) (*models.Schedule, error) {
 	var schedule models.Schedule
-	err := r.db.Preload("Playlist").First(&schedule, "schedule_id = ?", id).Error
+	err := r.db.Preload("Playlist").
+		First(&schedule, "schedule_id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
