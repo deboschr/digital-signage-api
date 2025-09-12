@@ -1,13 +1,21 @@
 {
 	"PlaylistID": 1,
+	"Name": "",
+	"Description": "",
+	"CreatedAt": "",
+	"UpdatedAt": "",
 	"Contents": [
 		{
 			"ContentID": 1,
-			"Order": 2
+			"Title": "",
+			"Order": 2,
+			"Dutation": ""
 		},
 		{
 			"ContentID": 2,
-			"Order": 1
+			"Title": "",
+			"Order": 1,
+			"Dutation": ""
 		}
 	]
 }

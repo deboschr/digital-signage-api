@@ -98,32 +98,32 @@ func (c *PlaylistController) CreatePlaylistContent(ctx *gin.Context) {
 		return
 	}
 
-	res, err := c.service.AddContents(req)
+	playlist, err := c.service.AddContents(req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// res = []dto.CreatePlaylistContentResDTO
-	ctx.JSON(http.StatusCreated, res)
+	// playlist = dto.DetailPlaylistDTO
+	ctx.JSON(http.StatusCreated, playlist)
 }
 
 // PATCH /playlists/content
 func (c *PlaylistController) UpdatePlaylistContent(ctx *gin.Context) {
-	var req []dto.UpdatePlaylistContentReqDTO
+	var req dto.UpdatePlaylistContentReqDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	res, err := c.service.UpdateOrders(req)
+	playlist, err := c.service.UpdateOrders(req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// res = []dto.UpdatePlaylistContentResDTO
-	ctx.JSON(http.StatusOK, res)
+	// playlist = dto.DetailPlaylistDTO
+	ctx.JSON(http.StatusOK, playlist)
 }
 
 // DELETE /playlists/content

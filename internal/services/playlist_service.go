@@ -14,8 +14,8 @@ type PlaylistService interface {
 	DeletePlaylist(id uint) error
 
 	// PlaylistContent
-	AddContents(req dto.CreatePlaylistContentReqDTO) ([]dto.CreatePlaylistContentResDTO, error)
-	UpdateOrders(req []dto.UpdatePlaylistContentReqDTO) ([]dto.UpdatePlaylistContentResDTO, error)
+	AddContents(req dto.CreatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error)
+	UpdateOrders(req dto.UpdatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error)
 	RemoveContents(req dto.DeletePlaylistContentReqDTO) error
 }
 
@@ -62,14 +62,16 @@ func (s *playlistService) GetPlaylistByID(id uint) (dto.DetailPlaylistDTO, error
 		}
 	}
 
-	contents := []dto.SummaryContentDTO{}
-	for _, c := range playlist.Contents {
-		contents = append(contents, dto.SummaryContentDTO{
-			ContentID: c.ContentID,
-			Title:     c.Title,
-			Type:      c.Type,
-			Duration:  c.Duration,
-		})
+	contents := []dto.PlaylistContentItemDTO{}
+	for _, pc := range playlist.PlaylistContent {
+		if pc.Content != nil {
+			contents = append(contents, dto.PlaylistContentItemDTO{
+				ContentID: pc.Content.ContentID,
+				Title:     pc.Content.Title,
+				Order:     pc.Order,
+				Duration:  pc.Content.Duration,
+			})
+		}
 	}
 
 	schedules := []dto.SummaryScheduleDTO{}
@@ -155,49 +157,29 @@ func (s *playlistService) DeletePlaylist(id uint) error {
 // -----------------------------
 
 // POST /playlists/content
-func (s *playlistService) AddContents(req dto.CreatePlaylistContentReqDTO) ([]dto.CreatePlaylistContentResDTO, error) {
+func (s *playlistService) AddContents(req dto.CreatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error) {
 	if err := s.repo.AddContents(req.PlaylistID, req.ContentIDs); err != nil {
-		return nil, err
+		return dto.DetailPlaylistDTO{}, err
 	}
-
-	var res []dto.CreatePlaylistContentResDTO
-	for _, cid := range req.ContentIDs {
-		res = append(res, dto.CreatePlaylistContentResDTO{
-			PlaylistID: req.PlaylistID,
-			ContentID:  cid,
-			Order:      0, // default, bisa diatur di repo jika ada logika khusus
-		})
-	}
-	return res, nil
+	// reload playlist
+	return s.GetPlaylistByID(req.PlaylistID)
 }
 
 // PATCH /playlists/content
-func (s *playlistService) UpdateOrders(req []dto.UpdatePlaylistContentReqDTO) ([]dto.UpdatePlaylistContentResDTO, error) {
+func (s *playlistService) UpdateOrders(req dto.UpdatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error) {
 	var contents []models.PlaylistContent
-	for _, r := range req {
-		pc := models.PlaylistContent{
-			PlaylistID: r.PlaylistID,
-			ContentID:  r.ContentID,
-		}
-		if r.Order != nil {
-			pc.Order = *r.Order
-		}
-		contents = append(contents, pc)
-	}
-
-	if err := s.repo.UpdateOrders(req[0].PlaylistID, contents); err != nil {
-		return nil, err
-	}
-
-	var res []dto.UpdatePlaylistContentResDTO
-	for _, c := range contents {
-		res = append(res, dto.UpdatePlaylistContentResDTO{
-			PlaylistID: c.PlaylistID,
+	for _, c := range req.Contents {
+		contents = append(contents, models.PlaylistContent{
+			PlaylistID: req.PlaylistID,
 			ContentID:  c.ContentID,
 			Order:      c.Order,
 		})
 	}
-	return res, nil
+	if err := s.repo.UpdateOrders(req.PlaylistID, contents); err != nil {
+		return dto.DetailPlaylistDTO{}, err
+	}
+	// reload playlist
+	return s.GetPlaylistByID(req.PlaylistID)
 }
 
 // DELETE /playlists/content

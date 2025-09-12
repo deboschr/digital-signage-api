@@ -58,4 +58,60 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 		return
 	}
 
-	// Ekst
+	// Ekstrak metadata dari file
+	title := filepath.Base(file.Filename)
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+
+	ctype := "image"
+	if ext == ".mp4" || ext == ".mov" || ext == ".avi" {
+		ctype = "video"
+	}
+
+	// Default duration = 0 (foto). Bisa dihitung pakai ffprobe untuk video.
+	duration := 0
+
+	// Bangun request DTO
+	req := dto.CreateContentReqDTO{
+		Title:    title,
+		Type:     ctype,
+		Duration: duration,
+	}
+
+	// Service handle mapping ke model + DB
+	res, err := c.service.CreateContent(req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// res = dto.CreateContentResDTO
+	ctx.JSON(http.StatusCreated, res)
+}
+
+// PUT/PATCH /contents/:id
+func (c *ContentController) UpdateContent(ctx *gin.Context) {
+	var req dto.UpdateContentReqDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	res, err := c.service.UpdateContent(req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// res = dto.UpdateContentResDTO
+	ctx.JSON(http.StatusOK, res)
+}
+
+// DELETE /contents/:id
+func (c *ContentController) DeleteContent(ctx *gin.Context) {
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	if err := c.service.DeleteContent(uint(id)); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "content deleted"})
+}

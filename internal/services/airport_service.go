@@ -113,4 +113,37 @@ func (s *airportService) CreateAirport(req dto.CreateAirportReqDTO) (dto.CreateA
 // PUT/PATCH → Update DTO
 func (s *airportService) UpdateAirport(req dto.UpdateAirportReqDTO) (dto.UpdateAirportResDTO, error) {
 	// ambil data lama
-	airport, err := s.repo.FindByID(req.Air
+	airport, err := s.repo.FindByID(req.AirportID)
+	if err != nil {
+		return dto.UpdateAirportResDTO{}, err
+	}
+
+	// update field kalau ada
+	if req.Name != nil {
+		airport.Name = *req.Name
+	}
+	if req.Code != nil {
+		airport.Code = *req.Code
+	}
+	if req.Address != nil {
+		airport.Address = *req.Address
+	}
+
+	if err := s.repo.Update(airport); err != nil {
+		return dto.UpdateAirportResDTO{}, err
+	}
+
+	return dto.UpdateAirportResDTO{
+		AirportID: airport.AirportID,
+		Name:      airport.Name,
+		Code:      airport.Code,
+		Address:   airport.Address,
+		CreatedAt: airport.CreatedAt,
+		UpdatedAt: airport.UpdatedAt,
+	}, nil
+}
+
+// DELETE
+func (s *airportService) DeleteAirport(id uint) error {
+	return s.repo.Delete(id)
+}

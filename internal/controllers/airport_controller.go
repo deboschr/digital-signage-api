@@ -19,23 +19,30 @@ func NewAirportController(service services.AirportService) *AirportController {
 
 // GET /airports
 func (c *AirportController) GetAirports(ctx *gin.Context) {
+
 	airports, err := c.service.GetAllAirports()
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	
 	// airports = []dto.SummaryAirportDTO
 	ctx.JSON(http.StatusOK, airports)
 }
 
 // GET /airports/:id
 func (c *AirportController) GetAirport(ctx *gin.Context) {
+
 	id, _ := strconv.Atoi(ctx.Param("id"))
+
 	airport, err := c.service.GetAirportByID(uint(id))
+
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "airport not found"})
 		return
 	}
+	
 	// airport = dto.DetailAirportDTO
 	ctx.JSON(http.StatusOK, airport)
 }
