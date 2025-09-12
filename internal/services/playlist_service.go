@@ -158,12 +158,22 @@ func (s *playlistService) DeletePlaylist(id uint) error {
 
 // POST /playlists/content
 func (s *playlistService) AddContents(req dto.CreatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error) {
-	if err := s.repo.AddContents(req.PlaylistID, req.ContentIDs); err != nil {
+	var contents []models.PlaylistContent
+	for _, c := range req.Contents {
+		contents = append(contents, models.PlaylistContent{
+			PlaylistID: req.PlaylistID,
+			ContentID:  c.ContentID,
+			Order:      c.Order,
+		})
+	}
+	if err := s.repo.AddContents(req.PlaylistID, contents); err != nil {
 		return dto.DetailPlaylistDTO{}, err
 	}
 	// reload playlist
 	return s.GetPlaylistByID(req.PlaylistID)
 }
+
+
 
 // PATCH /playlists/content
 func (s *playlistService) UpdateOrders(req dto.UpdatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error) {

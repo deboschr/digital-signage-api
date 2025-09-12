@@ -104,9 +104,10 @@ func (c *PlaylistController) CreatePlaylistContent(ctx *gin.Context) {
 		return
 	}
 
-	// playlist = dto.DetailPlaylistDTO
 	ctx.JSON(http.StatusCreated, playlist)
 }
+
+
 
 // PATCH /playlists/content
 func (c *PlaylistController) UpdatePlaylistContent(ctx *gin.Context) {

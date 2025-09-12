@@ -14,7 +14,7 @@ type PlaylistRepository interface {
 	Delete(id uint) error
 
 	// PlaylistContent
-	AddContents(playlistID uint, contentIDs []uint) error
+	AddContents(playlistID uint, contents []models.PlaylistContent) error
 	UpdateOrders(playlistID uint, contents []models.PlaylistContent) error
 	RemoveContents(playlistID uint, contentIDs []uint) error
 }
@@ -69,12 +69,12 @@ func (r *playlistRepository) Delete(id uint) error {
 // -----------------------------
 
 // Tambah isi playlist
-func (r *playlistRepository) AddContents(playlistID uint, contentIDs []uint) error {
-	for i, cid := range contentIDs {
+func (r *playlistRepository) AddContents(playlistID uint, contents []models.PlaylistContent) error {
+	for _, c := range contents {
 		pc := models.PlaylistContent{
 			PlaylistID: playlistID,
-			ContentID:  cid,
-			Order:      i + 1,
+			ContentID:  c.ContentID,
+			Order:      c.Order,
 		}
 		if err := r.db.Create(&pc).Error; err != nil {
 			return err
@@ -82,6 +82,8 @@ func (r *playlistRepository) AddContents(playlistID uint, contentIDs []uint) err
 	}
 	return nil
 }
+
+
 
 // Update urutan konten
 func (r *playlistRepository) UpdateOrders(playlistID uint, contents []models.PlaylistContent) error {

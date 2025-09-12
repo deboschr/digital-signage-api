@@ -74,8 +74,11 @@ type UpdatePlaylistResDTO struct {
 
 // POST /playlists/content
 type CreatePlaylistContentReqDTO struct {
-	PlaylistID uint   `json:"playlist_id" binding:"required"`
-	ContentIDs []uint `json:"content_ids" binding:"required"`
+	PlaylistID uint `json:"playlist_id" binding:"required"`
+	Contents   []struct {
+		ContentID uint `json:"content_id" binding:"required"`
+		Order     int  `json:"order" binding:"required"`
+	} `json:"contents" binding:"required"`
 }
 
 // PATCH /playlists/content
@@ -92,3 +95,4 @@ type DeletePlaylistContentReqDTO struct {
 	PlaylistID uint   `json:"playlist_id" binding:"required"`
 	ContentIDs []uint `json:"content_ids" binding:"required"`
 }
+
