@@ -23,8 +23,13 @@ func NewAirportRepository(db *gorm.DB) AirportRepository {
 }
 
 func (r *airportRepository) FindAll() ([]models.Airport, error) {
+	
 	var airports []models.Airport
-	err := r.db.Find(&airports).Error
+	
+	err := r.db.
+		Select("airport_id", "name", "code", "address").
+		Find(&airports).Error
+	
 	return airports, err
 }
 
