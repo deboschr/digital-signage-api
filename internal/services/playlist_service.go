@@ -4,6 +4,7 @@ import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/repositories"
+	"digital_signage_api/internal/utils"
 )
 
 type PlaylistService interface {
@@ -70,6 +71,7 @@ func (s *playlistService) GetPlaylistByID(id uint) (dto.DetailPlaylistDTO, error
 				Title:     pc.Content.Title,
 				Order:     pc.Order,
 				Duration:  pc.Content.Duration,
+				URL: 			utils.BuildContentURL(pc.Content.Title),
 			})
 		}
 	}

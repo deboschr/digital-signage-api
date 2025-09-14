@@ -2,31 +2,15 @@ package tcp
 
 import (
 	"digital_signage_api/internal/db"
+	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
+	"digital_signage_api/internal/utils"
 	"encoding/json"
 	"fmt"
 	"net"
-	"net/url"
-	"os"
 	"sync"
 	"time"
 )
-
-type PlaylistPayload struct {
-	ScheduleID uint              `json:"schedule_id"`
-	PlaylistID uint              `json:"playlist_id"`
-	Name       string            `json:"name"`
-	Contents   []ContentResponse `json:"contents"`
-}
-
-type ContentResponse struct {
-	ContentID uint   `json:"content_id"`
-	Title     string `json:"title"`
-	URL       string `json:"url"`
-	Order     int    `json:"order"`
-}
-
-
 
 var clientCount int
 var mu sync.Mutex
@@ -79,7 +63,6 @@ func handleConnection(conn net.Conn) {
 	fmt.Println("Client disconnected. Total:", clientCount)
 }
 
-
 func sendActivePlaylist(conn net.Conn) {
 	now := time.Now().Unix() // epoch second
 
@@ -95,35 +78,19 @@ func sendActivePlaylist(conn net.Conn) {
 	}
 
 	playlist := schedule.Playlist
-	payload := PlaylistPayload{
+	payload := dto.PlaylistPayloadDTO{
 		ScheduleID: schedule.ScheduleID,
 		PlaylistID: playlist.PlaylistID,
 		Name:       playlist.Name,
-		Contents:   []ContentResponse{},
-	}
-
-	baseHost := os.Getenv("APP_HOST")
-	if baseHost == "" {
-		baseHost = "localhost"
-	}
-
-	basePort := os.Getenv("APP_PORT")
-	if basePort == "" {
-		basePort = "8080"
-	}
-
-	staticPath := os.Getenv("STATIC_PATH")
-	if staticPath == "" {
-		staticPath = "/contents"
+		Contents:   []dto.TCPContentResponseDTO{},
 	}
 
 	for _, pc := range playlist.PlaylistContent {
 		if pc.Content != nil {
-			filename := url.PathEscape(pc.Content.Title)
-			payload.Contents = append(payload.Contents, ContentResponse{
+			payload.Contents = append(payload.Contents, dto.TCPContentResponseDTO{
 				ContentID: pc.ContentID,
 				Title:     pc.Content.Title,
-				URL:       fmt.Sprintf("http://%s:%s%s/%s", baseHost, basePort, staticPath, filename),
+				URL:       utils.BuildContentURL(pc.Content.Title),
 				Order:     pc.Order,
 			})
 		}

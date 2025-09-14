@@ -8,6 +8,7 @@ type SummaryContentDTO struct {
 	Title     string `json:"title"`
 	Type      string `json:"type"`
 	Duration  int    `json:"duration"`
+	URL       string `json:"url"`
 }
 
 // ==========================
@@ -18,10 +19,12 @@ type DetailContentDTO struct {
 	Title     string               `json:"title"`
 	Type      string               `json:"type"`
 	Duration  int                  `json:"duration"`
+	URL       string               `json:"url"`
 	CreatedAt int64                `json:"created_at"`
 	UpdatedAt int64                `json:"updated_at"`
 	Playlists []SummaryPlaylistDTO `json:"playlists"`
 }
+
 
 // ==========================
 // Create (Request & Response)

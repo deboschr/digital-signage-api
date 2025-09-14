@@ -4,7 +4,9 @@ import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/repositories"
+	"digital_signage_api/internal/utils"
 )
+
 
 type ContentService interface {
 	GetAllContents() ([]dto.SummaryContentDTO, error)
@@ -36,6 +38,7 @@ func (s *contentService) GetAllContents() ([]dto.SummaryContentDTO, error) {
 			Title:     c.Title,
 			Type:      c.Type,
 			Duration:  c.Duration,
+			URL:       utils.BuildContentURL(c.Title),
 		})
 	}
 	return res, nil
@@ -62,11 +65,13 @@ func (s *contentService) GetContentByID(id uint) (dto.DetailContentDTO, error) {
 		Title:     content.Title,
 		Type:      content.Type,
 		Duration:  content.Duration,
+		URL:       utils.BuildContentURL(content.Title),
 		CreatedAt: content.CreatedAt,
 		UpdatedAt: content.UpdatedAt,
 		Playlists: playlists,
 	}, nil
 }
+
 
 // POST → Create DTO
 func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.CreateContentResDTO, error) {

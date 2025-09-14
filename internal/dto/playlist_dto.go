@@ -17,6 +17,7 @@ type PlaylistContentItemDTO struct {
 	Title     string `json:"title"`
 	Order     int    `json:"order"`
 	Duration  int    `json:"duration"`
+	URL       string `json:"url"`
 }
 
 // ==========================
