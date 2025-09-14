@@ -6,10 +6,11 @@ import (
 	"digital_signage_api/internal/tcp"
 	"os"
 
-	// "digital_signage_api/internal/routes"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/gin-contrib/cors"
 )
 
 func InitApp() {
@@ -33,6 +34,20 @@ func InitApp() {
 	
 	// init Gin
 	r := gin.Default()
+
+	// aktifkan CORS
+	// r.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{"http://localhost:5173"}, // asal frontend Vite
+   //  	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+   //  	AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+   //  	ExposeHeaders:    []string{"Content-Length"},
+   //  	AllowCredentials: true,
+	// }))
+	
+	// aktifkan CORS untuk semua origin (development only)
+   r.Use(cors.Default())
+
+
 	
 	// health endpoints
 	r.GET("/health", func(c *gin.Context) {
