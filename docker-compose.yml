@@ -1,15 +1,17 @@
+version: "3.8"
 services:
   api:
     image: ghcr.io/deboschr/digital-signage-api:latest
+    container_name: cms-api
     ports:
       - "127.0.0.1:8080:8080"
     env_file:
-      - .env # hanya untuk lokal/staging manual
+      - .env
     restart: unless-stopped
+    volumes:
+      - ../media:/app/media
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
       interval: 15s
       timeout: 3s
       retries: 3
-    volumes:
-      - ./contents:/app/contents

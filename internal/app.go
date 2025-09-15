@@ -63,8 +63,8 @@ func InitApp() {
 	})
 	
 	// folder statis untuk menyimpan konten
-	staticPath := os.Getenv("STATIC_PATH") // "/contents"
-	r.Static(staticPath, "."+staticPath)
+	staticPath := os.Getenv("STATIC_PATH") // "../media"
+	r.Static(staticPath, ".."+staticPath)
 
 
 	// group API v1
