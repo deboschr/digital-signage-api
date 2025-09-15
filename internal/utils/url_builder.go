@@ -20,7 +20,7 @@ func BuildContentURL(title string) string {
 
 	staticPath := os.Getenv("STATIC_PATH")
 	if staticPath == "" {
-		staticPath = "/contents"
+		staticPath = "../media"
 	}
 
 	filename := url.PathEscape(title)
