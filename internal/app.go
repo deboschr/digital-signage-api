@@ -8,9 +8,8 @@ import (
 
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func InitApp() {
@@ -69,7 +68,7 @@ func InitApp() {
 
 
 	// group API v1
-	api := r.Group("/api/v1")
+	api := r.Group("/v1")
 	{
 		routes.UserRoutes(api, db.DB)
 		routes.AirportRoutes(api, db.DB)
