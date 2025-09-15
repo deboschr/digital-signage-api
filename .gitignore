@@ -1,6 +1,6 @@
 /bin/
 /out/
 *.log
-# .env
+.env
 contents/
 contents.zip
