@@ -3,7 +3,9 @@ package internal
 import (
 	"digital_signage_api/internal/db"
 	"digital_signage_api/internal/routes"
+
 	// "digital_signage_api/internal/models"
+	"digital_signage_api/internal/config"
 	"digital_signage_api/internal/tcp"
 	"os"
 
@@ -30,7 +32,7 @@ func InitApp() {
 	// 	panic("failed to migrate database: " + err.Error())
 	// }
 
-	
+
 	
 	// init Gin
 	r := gin.Default()
@@ -46,6 +48,10 @@ func InitApp() {
 	
 	// aktifkan CORS untuk semua origin (development only)
    r.Use(cors.Default())
+
+	cfg := config.Load()
+	// serve static media pakai path dari .env
+	r.Static("/media", cfg.StaticPath)
 
 
 	
