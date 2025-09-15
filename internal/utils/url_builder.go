@@ -12,7 +12,7 @@ func BuildContentURL(title string) string {
 
 	// Kalau production → domain https://cms.pivods.com
 	if env == "production" {
-		return fmt.Sprintf("https://cms.pivods.com/media/%s", filename)
+		return fmt.Sprintf("https://cms.pivods.com/api/media/%s", filename)
 	}
 
 	// Kalau development → tetap pakai host:port dari env
