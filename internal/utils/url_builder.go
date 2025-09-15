@@ -6,31 +6,25 @@ import (
 	"os"
 )
 
-// BuildContentURL generates a public URL for a content file
 func BuildContentURL(title string) string {
-    env := os.Getenv("APP_ENV")
-    staticPath := os.Getenv("STATIC_PATH")
-    if staticPath == "" {
-        staticPath = "/media"
-    }
+	env := os.Getenv("APP_ENV")
+	filename := url.PathEscape(title)
 
-    filename := url.PathEscape(title)
+	// Kalau production → domain https://cms.pivods.com
+	if env == "production" {
+		return fmt.Sprintf("https://cms.pivods.com/media/%s", filename)
+	}
 
-    if env == "production" {
-        // production → pakai domain publik
-        return fmt.Sprintf("https://cms.pivods.com%s/%s", staticPath, filename)
-    }
+	// Kalau development → tetap pakai host:port dari env
+	baseHost := os.Getenv("APP_HOST")
+	if baseHost == "" {
+		baseHost = "localhost"
+	}
 
-    // default (development / staging) → pakai host:port dari env
-    baseHost := os.Getenv("APP_HOST")
-    if baseHost == "" {
-        baseHost = "localhost"
-    }
+	basePort := os.Getenv("APP_PORT")
+	if basePort == "" {
+		basePort = "8080"
+	}
 
-    basePort := os.Getenv("APP_PORT")
-    if basePort == "" {
-        basePort = "8080"
-    }
-
-    return fmt.Sprintf("http://%s:%s%s/%s", baseHost, basePort, staticPath, filename)
+	return fmt.Sprintf("http://%s:%s/media/%s", baseHost, basePort, filename)
 }

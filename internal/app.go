@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"fmt"
 )
 
 func InitApp() {
@@ -51,6 +52,8 @@ func InitApp() {
 
 	cfg := config.Load()
 	// serve static media pakai path dari .env
+	// serve static media pakai path dari env
+	fmt.Println("Serving media from:", cfg.StaticPath)
 	r.Static("/media", cfg.StaticPath)
 
 
@@ -70,8 +73,8 @@ func InitApp() {
 	})
 	
 	// folder statis untuk menyimpan konten
-	staticPath := os.Getenv("STATIC_PATH") // "../media"
-	r.Static(staticPath, ".."+staticPath)
+	// staticPath := os.Getenv("STATIC_PATH") // "../media"
+	// r.Static(staticPath, ".."+staticPath)
 
 
 	// group API v1
