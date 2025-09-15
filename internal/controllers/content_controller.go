@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,12 +52,18 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 		return
 	}
 
-	// Simpan file ke folder contents/
-	savePath := filepath.Join("contents", file.Filename)
-	if err := ctx.SaveUploadedFile(file, savePath); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	// Simpan file ke folder media (STATIC_PATH)
+	mediaDir := os.Getenv("STATIC_PATH")
+	if mediaDir == "" {
+    	mediaDir = "./media"
 	}
+
+	savePath := filepath.Join(mediaDir, file.Filename)
+	if err := ctx.SaveUploadedFile(file, savePath); err != nil {
+    	ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+    	return
+	}
+
 
 	// Ekstrak metadata dari file
 	title := filepath.Base(file.Filename)
