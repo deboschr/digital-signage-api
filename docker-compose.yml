@@ -3,15 +3,20 @@ services:
     image: ghcr.io/deboschr/digital-signage-api:latest
     container_name: cms-api
     depends_on:
-      - db
+      db:
+        condition: service_healthy # tunggu sampai MySQL sehat
     ports:
+      # API HTTP hanya untuk nginx reverse proxy
       - "127.0.0.1:8080:8080"
+      # TCP server dibuka publik
       - "0.0.0.0:9000:9000"
     env_file:
       - .env
     restart: unless-stopped
     volumes:
       - ../media:/app/media
+      # 👇 mount certbot folder (read-only)
+      - /opt/certs:/etc/certs:ro
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
       interval: 15s
@@ -29,8 +34,12 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
     volumes:
       - db_data:/var/lib/mysql
-    # ⚠️ jangan expose ke host, biar tidak bentrok dengan MySQL bawaan server
-    # kalau butuh akses manual dari host, baru buka port misalnya "3307:3306"
+    # ⚠️ tidak expose port ke host → aman
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db_data:

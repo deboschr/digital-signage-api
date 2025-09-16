@@ -17,8 +17,8 @@ var clientCount int
 var mu sync.Mutex
 
 func StartTCPServer() {
-	certFile := "/etc/letsencrypt/live/cms.pivods.com/fullchain.pem"
-	keyFile  := "/etc/letsencrypt/live/cms.pivods.com/privkey.pem"
+	certFile := "/etc/certs/fullchain.pem"
+	keyFile  := "/etc/certs/privkey.pem"
 
 	cer, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
