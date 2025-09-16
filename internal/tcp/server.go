@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"crypto/tls"
 	"digital_signage_api/internal/db"
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
@@ -16,11 +17,21 @@ var clientCount int
 var mu sync.Mutex
 
 func StartTCPServer() {
-	listener, err := net.Listen("tcp", ":9000")
+	certFile := "/etc/letsencrypt/live/cms.pivods.com/fullchain.pem"
+	keyFile  := "/etc/letsencrypt/live/cms.pivods.com/privkey.pem"
+
+	cer, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("failed to load cert: %v", err))
 	}
-	fmt.Println("🎧 TCP server listening on :9000")
+
+	config := &tls.Config{Certificates: []tls.Certificate{cer}}
+
+	listener, err := tls.Listen("tcp", ":9000", config)
+	if err != nil {
+		panic(fmt.Sprintf("failed to start TLS listener: %v", err))
+	}
+	fmt.Println("🎧 TLS TCP server listening on :9000")
 
 	for {
 		conn, err := listener.Accept()
@@ -37,6 +48,7 @@ func StartTCPServer() {
 		go handleConnection(conn)
 	}
 }
+
 
 func handleConnection(conn net.Conn) {
 	mu.Lock()
