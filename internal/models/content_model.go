@@ -2,15 +2,12 @@ package models
 
 type Content struct {
 	ContentID uint   `gorm:"primaryKey;autoIncrement;column:content_id"`
+	AirportID uint   `gorm:"not null;column:airport_id"`
 	Title     string `gorm:"size:150;not null;column:title"`
-	Type      string `gorm:"type:enum('image','video','text');not null;column:type"`
-	Duration  int    `gorm:"column:duration"`
-	CreatedAt int64  `gorm:"autoCreateTime:milli;column:created_at"`
-	UpdatedAt int64  `gorm:"autoUpdateTime:milli;column:updated_at"`
+	Type      string `gorm:"type:enum('image','video');not null;column:type"`
+	Duration  uint16 `gorm:"column:duration;not null"` // detik, 0–3600
 
-	// Many-to-Many dengan Playlist
-	Playlists []*Playlist `gorm:"many2many:playlist_contents;joinForeignKey:ContentID;joinReferences:PlaylistID"`
-
-	// Relasi tambahan
+	Playlists       []*Playlist        `gorm:"many2many:playlist_contents;joinForeignKey:ContentID;joinReferences:PlaylistID"`
 	PlaylistContent []*PlaylistContent `gorm:"foreignKey:ContentID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
+	Airport         *Airport           `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 }
