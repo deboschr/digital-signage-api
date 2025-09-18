@@ -1,60 +1,31 @@
 package dto
 
-// ==========================
-// Summary untuk listing
-// ==========================
-type SummaryUserDTO struct {
+type GetSummaryUserResDTO struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
 	Role     string `json:"role"`
 }
 
-// ==========================
-// Detail untuk GET /users/:id
-// ==========================
-type DetailUserDTO struct {
-	UserID    uint              `json:"user_id"`
-	Username  string            `json:"username"`
-	Role      string            `json:"role"`
-	CreatedAt int64             `json:"created_at"`
-	UpdatedAt int64             `json:"updated_at"`
-	Airport   *SummaryAirportDTO `json:"airport,omitempty"`
+type GetDetailUserResDTO struct {
+	UserID    uint                     `json:"user_id"`
+	Username  string                   `json:"username"`
+	Role      string                   `json:"role"`
+	CreatedAt int64                    `json:"created_at"`
+	UpdatedAt int64                    `json:"updated_at"`
+	Airport   *GetSummaryAirportResDTO `json:"airport,omitempty"`
 }
 
-// ==========================
-// Create (Request & Response)
-// ==========================
 type CreateUserReqDTO struct {
-	AirportID *uint  `json:"airport_id,omitempty"`
-	Username  string `json:"username" binding:"required"`
-	Password  string `json:"password" binding:"required"`
-	Role      string `json:"role" binding:"required"`
+	AirportID *uint  `json:"airport_id" binding:"omitempty,gt=0"`
+	Username  string `json:"username" binding:"required,min=3,max=100"`
+	Password  string `json:"password" binding:"required,min=6,max=255"`
+	Role      string `json:"role" binding:"required,oneof=management admin"`
 }
 
-type CreateUserResDTO struct {
-	UserID    uint   `json:"user_id"`
-	Username  string `json:"username"`
-	Role      string `json:"role"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
-}
-
-// ==========================
-// Update (Request & Response)
-// ==========================
 type UpdateUserReqDTO struct {
-	UserID    uint    `json:"user_id" binding:"required"`
-	AirportID *uint   `json:"airport_id,omitempty"`
-	Username  *string `json:"username,omitempty"`
-	Password  *string `json:"password,omitempty"`
-	Role      *string `json:"role,omitempty"`
-}
-
-
-type UpdateUserResDTO struct {
-	UserID    uint   `json:"user_id"`
-	Username  string `json:"username"`
-	Role      string `json:"role"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
+	UserID    uint    `json:"user_id" binding:"required,gt=0"`
+	AirportID *uint   `json:"airport_id" binding:"omitempty,gt=0"`
+	Username  *string `json:"username" binding:"omitempty,min=3,max=100"`
+	Password  *string `json:"password" binding:"omitempty,min=6,max=255"`
+	Role      *string `json:"role" binding:"omitempty,oneof=management admin"`
 }
