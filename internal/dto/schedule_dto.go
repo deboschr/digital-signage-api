@@ -45,5 +45,5 @@ type ActiveScheduleRes struct {
 		Title     string `json:"title"`
 		URL       string `json:"url"`
 		Order     int    `json:"order"`
-	}
+	} `json:"contents"`
 }
