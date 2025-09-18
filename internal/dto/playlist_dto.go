@@ -11,10 +11,10 @@ type GetDetailPlaylistResDTO struct {
 	Name        string                  `json:"name"`
 	Description string                  `json:"description"`
 	Airport     GetSummaryAirportResDTO `json:"airport"`
-	Contents    []struct {
+	Contents    *[]struct {
 		GetSummaryContentResDTO
 		Order int `json:"order"`
-	} `json:"contents"`
+	} `json:"contents,omitempty"`
 }
 
 type CreatePlaylistReqDTO struct {
@@ -31,22 +31,22 @@ type UpdatePlaylistReqDTO struct {
 }
 
 type CreatePlaylistContentReqDTO struct {
-	PlaylistID uint `json:"playlist_id"`
+	PlaylistID uint `json:"playlist_id" binding:"required,gt=0"`
 	Contents   []struct {
-		ContentID uint `json:"content_id"`
-		Order     int  `json:"order"`
-	} `json:"contents"`
+		ContentID uint `json:"content_id" binding:"required,gt=0"`
+		Order     int  `json:"order" binding:"required,gte=1"`
+	} `json:"contents" binding:"required,dive,required"`
 }
 
 type UpdatePlaylistContentReqDTO struct {
-	PlaylistID uint `json:"playlist_id"`
+	PlaylistID uint `json:"playlist_id" binding:"required,gt=0"`
 	Contents   []struct {
-		ContentID uint `json:"content_id"`
-		Order     int  `json:"order"`
-	} `json:"contents"`
+		ContentID uint `json:"content_id" binding:"required,gt=0"`
+		Order     int  `json:"order" binding:"required,gte=1"`
+	} `json:"contents" binding:"required,dive,required"`
 }
 
 type DeletePlaylistContentReqDTO struct {
-	PlaylistID uint   `json:"playlist_id"`
-	ContentIDs []uint `json:"content_ids"`
+	PlaylistID uint   `json:"playlist_id" binding:"required,gt=0"`
+	ContentIDs []uint `json:"content_ids" binding:"required,min=1,dive,gt=0"`
 }
