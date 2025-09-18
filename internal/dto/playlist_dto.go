@@ -7,10 +7,10 @@ type GetSummaryPlaylistResDTO struct {
 }
 
 type GetDetailPlaylistResDTO struct {
-	PlaylistID  uint                     `json:"playlist_id"`
-	Name        string                   `json:"name"`
-	Description string                   `json:"description"`
-	Airport     *GetSummaryAirportResDTO `json:"airport,omitempty"`
+	PlaylistID  uint                    `json:"playlist_id"`
+	Name        string                  `json:"name"`
+	Description string                  `json:"description"`
+	Airport     GetSummaryAirportResDTO `json:"airport"`
 	Contents    []struct {
 		GetSummaryContentResDTO
 		Order int `json:"order"`

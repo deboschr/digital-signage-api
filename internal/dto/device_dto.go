@@ -7,11 +7,11 @@ type GetSummaryDeviceResDTO struct {
 }
 
 type GetDetailDeviceResDTO struct {
-	DeviceID    uint                     `json:"device_id"`
-	Name        string                   `json:"name"`
-	ApiKey      string                   `json:"api_key"`
-	IsConnected string                   `json:"is_connected"`
-	Airport     *GetSummaryAirportResDTO `json:"airport,omitempty"`
+	DeviceID    uint                    `json:"device_id"`
+	Name        string                  `json:"name"`
+	ApiKey      string                  `json:"api_key"`
+	IsConnected string                  `json:"is_connected"`
+	Airport     GetSummaryAirportResDTO `json:"airport"`
 }
 
 type CreateDeviceReqDTO struct {

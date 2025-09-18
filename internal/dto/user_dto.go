@@ -7,12 +7,10 @@ type GetSummaryUserResDTO struct {
 }
 
 type GetDetailUserResDTO struct {
-	UserID    uint                     `json:"user_id"`
-	Username  string                   `json:"username"`
-	Role      string                   `json:"role"`
-	CreatedAt int64                    `json:"created_at"`
-	UpdatedAt int64                    `json:"updated_at"`
-	Airport   *GetSummaryAirportResDTO `json:"airport,omitempty"`
+	UserID   uint                     `json:"user_id"`
+	Username string                   `json:"username"`
+	Role     string                   `json:"role"`
+	Airport  *GetSummaryAirportResDTO `json:"airport,omitempty"`
 }
 
 type CreateUserReqDTO struct {

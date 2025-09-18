@@ -8,11 +8,12 @@ type GetSummaryScheduleResDTO struct {
 }
 
 type GetDetailScheduleResDTO struct {
-	ScheduleID    uint                      `json:"schedule_id"`
-	StartTime     int64                     `json:"start_time"`
-	EndTime       int64                     `json:"end_time"`
-	RepeatPattern string                    `json:"repeat_pattern"`
-	Playlist      *GetSummaryPlaylistResDTO `json:"playlist,omitempty"`
+	ScheduleID    uint                     `json:"schedule_id"`
+	StartTime     int64                    `json:"start_time"`
+	EndTime       int64                    `json:"end_time"`
+	RepeatPattern string                   `json:"repeat_pattern"`
+	Airport       GetSummaryAirportResDTO  `json:"airport"`
+	Playlist      GetSummaryPlaylistResDTO `json:"playlist"`
 }
 
 type CreateScheduleReqDTO struct {
