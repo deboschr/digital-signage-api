@@ -3,14 +3,14 @@ package dto
 type GetSummaryDeviceResDTO struct {
 	DeviceID    uint   `json:"device_id"`
 	Name        string `json:"name"`
-	IsConnected string `json:"is_connected"`
+	IsConnected bool   `json:"is_connected"`
 }
 
 type GetDetailDeviceResDTO struct {
 	DeviceID    uint                    `json:"device_id"`
 	Name        string                  `json:"name"`
 	ApiKey      string                  `json:"api_key"`
-	IsConnected string                  `json:"is_connected"`
+	IsConnected bool                    `json:"is_connected"`
 	Airport     GetSummaryAirportResDTO `json:"airport"`
 }
 

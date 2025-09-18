@@ -4,7 +4,7 @@ type GetSummaryContentResDTO struct {
 	ContentID uint   `json:"content_id"`
 	Title     string `json:"title"`
 	Type      string `json:"type"`
-	Duration  int    `json:"duration"`
+	Duration  uint16 `json:"duration"`
 	URL       string `json:"url"`
 }
 

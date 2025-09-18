@@ -4,13 +4,14 @@ import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/repositories"
+	"digital_signage_api/internal/utils"
 )
 
 type AirportService interface {
-	GetAllAirports() ([]dto.SummaryAirportDTO, error)
-	GetAirportByID(id uint) (dto.DetailAirportDTO, error)
-	CreateAirport(req dto.CreateAirportReqDTO) (dto.CreateAirportResDTO, error)
-	UpdateAirport(req dto.UpdateAirportReqDTO) (dto.UpdateAirportResDTO, error)
+	GetAllAirports() ([]dto.GetSummaryAirportResDTO, error)
+	GetAirportByID(id uint) (dto.GetDetailAirportResDTO, error)
+	CreateAirport(req dto.CreateAirportReqDTO) (dto.GetDetailAirportResDTO, error)
+	UpdateAirport(req dto.UpdateAirportReqDTO) (dto.GetDetailAirportResDTO, error)
 	DeleteAirport(id uint) error
 }
 
@@ -22,74 +23,94 @@ func NewAirportService(repo repositories.AirportRepository) AirportService {
 	return &airportService{repo}
 }
 
-// GET all → Summary DTO
-func (s *airportService) GetAllAirports() ([]dto.SummaryAirportDTO, error) {
+func (s *airportService) GetAllAirports() ([]dto.GetSummaryAirportResDTO, error) {
+
 	airports, err := s.repo.FindAll()
+
 	if err != nil {
 		return nil, err
 	}
 
-	var res []dto.SummaryAirportDTO
+	var res []dto.GetSummaryAirportResDTO
+
 	for _, a := range airports {
-		res = append(res, dto.SummaryAirportDTO{
+		res = append(res, dto.GetSummaryAirportResDTO{
 			AirportID: a.AirportID,
 			Name:      a.Name,
 			Code:      a.Code,
 			Address:   a.Address,
 		})
 	}
+
 	return res, nil
 }
 
-// GET by ID → Detail DTO
-func (s *airportService) GetAirportByID(id uint) (dto.DetailAirportDTO, error) {
+func (s *airportService) GetAirportByID(id uint) (dto.GetDetailAirportResDTO, error) {
+
 	airport, err := s.repo.FindByID(id)
+
 	if err != nil {
-		return dto.DetailAirportDTO{}, err
+		return dto.GetDetailAirportResDTO{}, err
 	}
 
-	// mapping relasi
-	users := []dto.SummaryUserDTO{}
+
+	users := []*dto.GetSummaryUserResDTO{}
 	for _, u := range airport.Users {
-		users = append(users, dto.SummaryUserDTO{
-			UserID:   u.UserID,
-			Username: u.Username,
-			Role:     u.Role,
-		})
+    	user := dto.GetSummaryUserResDTO{
+        	UserID:   u.UserID,
+        	Username: u.Username,
+        	Role:     u.Role,
+    	}
+    	users = append(users, &user)
 	}
-	devices := []dto.SummaryDeviceDTO{}
+
+
+	devices := []*dto.GetSummaryDeviceResDTO{}
 	for _, d := range airport.Devices {
-		devices = append(devices, dto.SummaryDeviceDTO{
+		device := dto.GetSummaryDeviceResDTO{
 			DeviceID:  d.DeviceID,
 			Name:      d.Name,
-			IpAddress: d.IpAddress,
-			Status:    d.Status,
-		})
+			IsConnected:    d.IsConnected,
+		}
+		devices = append(devices, &device)
 	}
-	playlists := []dto.SummaryPlaylistDTO{}
+
+	playlists := []*dto.GetSummaryPlaylistResDTO{}
 	for _, p := range airport.Playlists {
-		playlists = append(playlists, dto.SummaryPlaylistDTO{
+		playlist := dto.GetSummaryPlaylistResDTO{
 			PlaylistID:  p.PlaylistID,
 			Name:        p.Name,
 			Description: p.Description,
-		})
+		}
+		playlists = append(playlists, &playlist)
 	}
 
-	return dto.DetailAirportDTO{
+	contents := []*dto.GetSummaryContentResDTO{}
+	for _, c := range airport.Contents {
+		content := dto.GetSummaryContentResDTO{
+			ContentID:  c.ContentID,
+			Title: c.Title,
+			Type:        c.Type,
+			Duration:        c.Duration,
+			URL:        utils.BuildContentURL(c.Title),
+		}
+		contents = append(contents, &content)
+	}
+
+	return dto.GetDetailAirportResDTO{
 		AirportID: airport.AirportID,
 		Name:      airport.Name,
 		Code:      airport.Code,
 		Address:   airport.Address,
-		CreatedAt: airport.CreatedAt,
-		UpdatedAt: airport.UpdatedAt,
 		Users:     users,
 		Devices:   devices,
 		Playlists: playlists,
+		Contents: contents,
 	}, nil
 }
 
-// POST → Create DTO
-func (s *airportService) CreateAirport(req dto.CreateAirportReqDTO) (dto.CreateAirportResDTO, error) {
+func (s *airportService) CreateAirport(req dto.CreateAirportReqDTO) (dto.GetDetailAirportResDTO, error) {
+	
 	airport := models.Airport{
 		Name:    req.Name,
 		Code:    req.Code,
@@ -97,25 +118,22 @@ func (s *airportService) CreateAirport(req dto.CreateAirportReqDTO) (dto.CreateA
 	}
 
 	if err := s.repo.Create(&airport); err != nil {
-		return dto.CreateAirportResDTO{}, err
+		return dto.GetDetailAirportResDTO{}, err
 	}
 
-	return dto.CreateAirportResDTO{
+	return dto.GetDetailAirportResDTO{
 		AirportID: airport.AirportID,
 		Name:      airport.Name,
 		Code:      airport.Code,
 		Address:   airport.Address,
-		CreatedAt: airport.CreatedAt,
-		UpdatedAt: airport.UpdatedAt,
 	}, nil
 }
 
-// PUT/PATCH → Update DTO
-func (s *airportService) UpdateAirport(req dto.UpdateAirportReqDTO) (dto.UpdateAirportResDTO, error) {
+func (s *airportService) UpdateAirport(req dto.UpdateAirportReqDTO) (dto.GetDetailAirportResDTO, error) {
 	// ambil data lama
 	airport, err := s.repo.FindByID(req.AirportID)
 	if err != nil {
-		return dto.UpdateAirportResDTO{}, err
+		return dto.GetDetailAirportResDTO{}, err
 	}
 
 	// update field kalau ada
@@ -126,24 +144,21 @@ func (s *airportService) UpdateAirport(req dto.UpdateAirportReqDTO) (dto.UpdateA
 		airport.Code = *req.Code
 	}
 	if req.Address != nil {
-		airport.Address = *req.Address
+		airport.Address = req.Address
 	}
 
 	if err := s.repo.Update(airport); err != nil {
-		return dto.UpdateAirportResDTO{}, err
+		return dto.GetDetailAirportResDTO{}, err
 	}
 
-	return dto.UpdateAirportResDTO{
+	return dto.GetDetailAirportResDTO{
 		AirportID: airport.AirportID,
 		Name:      airport.Name,
 		Code:      airport.Code,
 		Address:   airport.Address,
-		CreatedAt: airport.CreatedAt,
-		UpdatedAt: airport.UpdatedAt,
 	}, nil
 }
 
-// DELETE
 func (s *airportService) DeleteAirport(id uint) error {
 	return s.repo.Delete(id)
 }

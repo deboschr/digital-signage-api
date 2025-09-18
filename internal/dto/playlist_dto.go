@@ -1,15 +1,15 @@
 package dto
 
 type GetSummaryPlaylistResDTO struct {
-	PlaylistID  uint   `json:"playlist_id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	PlaylistID  uint    `json:"playlist_id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description"`
 }
 
 type GetDetailPlaylistResDTO struct {
 	PlaylistID  uint                    `json:"playlist_id"`
 	Name        string                  `json:"name"`
-	Description string                  `json:"description"`
+	Description *string                 `json:"description"`
 	Airport     GetSummaryAirportResDTO `json:"airport"`
 	Contents    *[]struct {
 		GetSummaryContentResDTO

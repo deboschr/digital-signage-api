@@ -17,7 +17,6 @@ func NewAirportController(service services.AirportService) *AirportController {
 	return &AirportController{service}
 }
 
-// GET /airports
 func (c *AirportController) GetAirports(ctx *gin.Context) {
 
 	airports, err := c.service.GetAllAirports()
@@ -27,11 +26,9 @@ func (c *AirportController) GetAirports(ctx *gin.Context) {
 		return
 	}
 	
-	// airports = []dto.SummaryAirportDTO
 	ctx.JSON(http.StatusOK, airports)
 }
 
-// GET /airports/:id
 func (c *AirportController) GetAirport(ctx *gin.Context) {
 
 	id, _ := strconv.Atoi(ctx.Param("id"))
@@ -43,31 +40,32 @@ func (c *AirportController) GetAirport(ctx *gin.Context) {
 		return
 	}
 	
-	// airport = dto.DetailAirportDTO
 	ctx.JSON(http.StatusOK, airport)
 }
 
-// POST /airports
 func (c *AirportController) CreateAirport(ctx *gin.Context) {
+
 	var req dto.CreateAirportReqDTO
+
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	res, err := c.service.CreateAirport(req)
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// res = dto.CreateAirportResDTO
 	ctx.JSON(http.StatusCreated, res)
 }
 
-// PUT/PATCH /airports/:id
 func (c *AirportController) UpdateAirport(ctx *gin.Context) {
+
 	var req dto.UpdateAirportReqDTO
+
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -79,16 +77,17 @@ func (c *AirportController) UpdateAirport(ctx *gin.Context) {
 		return
 	}
 
-	// res = dto.UpdateAirportResDTO
 	ctx.JSON(http.StatusOK, res)
 }
 
-// DELETE /airports/:id
 func (c *AirportController) DeleteAirport(ctx *gin.Context) {
+
 	id, _ := strconv.Atoi(ctx.Param("id"))
+	
 	if err := c.service.DeleteAirport(uint(id)); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	
 	ctx.JSON(http.StatusOK, gin.H{"message": "airport deleted"})
 }

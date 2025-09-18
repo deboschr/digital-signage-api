@@ -9,12 +9,12 @@ import (
 )
 
 type UserService interface {
-	GetAllUsers() ([]dto.SummaryUserDTO, error)
-	GetUserByID(id uint) (dto.DetailUserDTO, error)
-	CreateUser(req dto.CreateUserReqDTO) (dto.CreateUserResDTO, error)
-	UpdateUser(req dto.UpdateUserReqDTO) (dto.UpdateUserResDTO, error)
+	GetAllUsers() ([]dto.GetSummaryUserResDTO, error)
+	GetUserByID(id uint) (dto.GetDetailUserResDTO, error)
+	CreateUser(req dto.CreateUserReqDTO) (dto.GetSummaryUserResDTO, error)
+	UpdateUser(req dto.UpdateUserReqDTO) (dto.GetSummaryUserResDTO, error)
 	DeleteUser(id uint) error
-	Authenticate(username, password string) (dto.SummaryUserDTO, error)
+	Authenticate(username, password string) (dto.GetSummaryUserResDTO, error)
 }
 
 type userService struct {
@@ -25,34 +25,36 @@ func NewUserService(repo repositories.UserRepository) UserService {
 	return &userService{repo}
 }
 
-// GET all → Summary DTO
-func (s *userService) GetAllUsers() ([]dto.SummaryUserDTO, error) {
+func (s *userService) GetAllUsers() ([]dto.GetSummaryUserResDTO, error) {
+
 	users, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var res []dto.SummaryUserDTO
+	var res []dto.GetSummaryUserResDTO
 	for _, u := range users {
-		res = append(res, dto.SummaryUserDTO{
+		res = append(res, dto.GetSummaryUserResDTO{
 			UserID:   u.UserID,
 			Username: u.Username,
 			Role:     u.Role,
 		})
 	}
+
 	return res, nil
 }
 
-// GET by ID → Detail DTO
-func (s *userService) GetUserByID(id uint) (dto.DetailUserDTO, error) {
+func (s *userService) GetUserByID(id uint) (dto.GetDetailUserResDTO, error) {
+
 	user, err := s.repo.FindByID(id)
+	
 	if err != nil {
-		return dto.DetailUserDTO{}, err
+		return dto.GetDetailUserResDTO{}, err
 	}
 
-	var airport *dto.SummaryAirportDTO
+	var airport *dto.GetSummaryAirportResDTO
 	if user.Airport != nil {
-		airport = &dto.SummaryAirportDTO{
+		airport = &dto.GetSummaryAirportResDTO{
 			AirportID: user.Airport.AirportID,
 			Name:      user.Airport.Name,
 			Code:      user.Airport.Code,
@@ -60,22 +62,19 @@ func (s *userService) GetUserByID(id uint) (dto.DetailUserDTO, error) {
 		}
 	}
 
-	return dto.DetailUserDTO{
+	return dto.GetDetailUserResDTO{
 		UserID:    user.UserID,
 		Username:  user.Username,
 		Role:      user.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
 		Airport:   airport,
 	}, nil
 }
 
-// POST → Create DTO
-func (s *userService) CreateUser(req dto.CreateUserReqDTO) (dto.CreateUserResDTO, error) {
-	// hash password
+func (s *userService) CreateUser(req dto.CreateUserReqDTO) (dto.GetSummaryUserResDTO, error) {
+	
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return dto.CreateUserResDTO{}, err
+		return dto.GetSummaryUserResDTO{}, err
 	}
 
 	user := models.User{
@@ -86,23 +85,21 @@ func (s *userService) CreateUser(req dto.CreateUserReqDTO) (dto.CreateUserResDTO
 	}
 
 	if err := s.repo.Create(&user); err != nil {
-		return dto.CreateUserResDTO{}, err
+		return dto.GetSummaryUserResDTO{}, err
 	}
 
-	return dto.CreateUserResDTO{
+	return dto.GetSummaryUserResDTO{
 		UserID:    user.UserID,
 		Username:  user.Username,
 		Role:      user.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
-// PUT/PATCH → Update DTO
-func (s *userService) UpdateUser(req dto.UpdateUserReqDTO) (dto.UpdateUserResDTO, error) {
+func (s *userService) UpdateUser(req dto.UpdateUserReqDTO) (dto.GetSummaryUserResDTO, error) {
+	
 	user, err := s.repo.FindByID(req.UserID)
 	if err != nil {
-		return dto.UpdateUserResDTO{}, err
+		return dto.GetSummaryUserResDTO{}, err
 	}
 
 	if req.AirportID != nil {
@@ -117,40 +114,39 @@ func (s *userService) UpdateUser(req dto.UpdateUserReqDTO) (dto.UpdateUserResDTO
 	if req.Password != nil && *req.Password != "" {
 		hashed, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return dto.UpdateUserResDTO{}, err
+			return dto.GetSummaryUserResDTO{}, err
 		}
 		user.Password = string(hashed)
 	}
 
 	if err := s.repo.Update(user); err != nil {
-		return dto.UpdateUserResDTO{}, err
+		return dto.GetSummaryUserResDTO{}, err
 	}
 
-	return dto.UpdateUserResDTO{
+	return dto.GetSummaryUserResDTO{
 		UserID:    user.UserID,
 		Username:  user.Username,
 		Role:      user.Role,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 
-// DELETE
 func (s *userService) DeleteUser(id uint) error {
 	return s.repo.Delete(id)
 }
 
 // AUTH
-func (s *userService) Authenticate(username, password string) (dto.SummaryUserDTO, error) {
+func (s *userService) Authenticate(username, password string) (dto.GetSummaryUserResDTO, error) {
+	
 	user, err := s.repo.FindByUsername(username)
+	
 	if err != nil {
-		return dto.SummaryUserDTO{}, err
+		return dto.GetSummaryUserResDTO{}, err
 	}
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		return dto.SummaryUserDTO{}, err
+		return dto.GetSummaryUserResDTO{}, err
 	}
 
-	return dto.SummaryUserDTO{
+	return dto.GetSummaryUserResDTO{
 		UserID:   user.UserID,
 		Username: user.Username,
 		Role:     user.Role,
