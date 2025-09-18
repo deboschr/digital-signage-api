@@ -17,71 +17,78 @@ func NewScheduleController(service services.ScheduleService) *ScheduleController
 	return &ScheduleController{service}
 }
 
-// GET /schedules
 func (c *ScheduleController) GetSchedules(ctx *gin.Context) {
+	
 	schedules, err := c.service.GetAllSchedules()
+	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// schedules = []dto.SummaryScheduleDTO
+	
 	ctx.JSON(http.StatusOK, schedules)
 }
 
-// GET /schedules/:id
 func (c *ScheduleController) GetSchedule(ctx *gin.Context) {
+	
 	id, _ := strconv.Atoi(ctx.Param("id"))
+	
 	schedule, err := c.service.GetScheduleByID(uint(id))
+	
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "schedule not found"})
 		return
 	}
-	// schedule = dto.DetailScheduleDTO
+	
 	ctx.JSON(http.StatusOK, schedule)
 }
 
-// POST /schedules
 func (c *ScheduleController) CreateSchedule(ctx *gin.Context) {
+	
 	var req dto.CreateScheduleReqDTO
+	
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	res, err := c.service.CreateSchedule(req)
+	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// res = dto.CreateScheduleResDTO
 	ctx.JSON(http.StatusCreated, res)
 }
 
-// PUT/PATCH /schedules/:id
 func (c *ScheduleController) UpdateSchedule(ctx *gin.Context) {
+	
 	var req dto.UpdateScheduleReqDTO
+	
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	res, err := c.service.UpdateSchedule(req)
+	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// res = dto.UpdateScheduleResDTO
 	ctx.JSON(http.StatusOK, res)
 }
 
-// DELETE /schedules/:id
 func (c *ScheduleController) DeleteSchedule(ctx *gin.Context) {
+	
 	id, _ := strconv.Atoi(ctx.Param("id"))
+	
 	if err := c.service.DeleteSchedule(uint(id)); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	
 	ctx.JSON(http.StatusOK, gin.H{"message": "schedule deleted"})
 }

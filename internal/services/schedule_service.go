@@ -7,10 +7,10 @@ import (
 )
 
 type ScheduleService interface {
-	GetAllSchedules() ([]dto.SummaryScheduleDTO, error)
-	GetScheduleByID(id uint) (dto.DetailScheduleDTO, error)
-	CreateSchedule(req dto.CreateScheduleReqDTO) (dto.CreateScheduleResDTO, error)
-	UpdateSchedule(req dto.UpdateScheduleReqDTO) (dto.UpdateScheduleResDTO, error)
+	GetAllSchedules() ([]dto.GetSummaryScheduleResDTO, error)
+	GetScheduleByID(id uint) (dto.GetDetailScheduleResDTO, error)
+	CreateSchedule(req dto.CreateScheduleReqDTO) (dto.GetSummaryScheduleResDTO, error)
+	UpdateSchedule(req dto.UpdateScheduleReqDTO) (dto.GetSummaryScheduleResDTO, error)
 	DeleteSchedule(id uint) error
 }
 
@@ -22,54 +22,59 @@ func NewScheduleService(repo repositories.ScheduleRepository) ScheduleService {
 	return &scheduleService{repo}
 }
 
-// GET all → Summary DTO
-func (s *scheduleService) GetAllSchedules() ([]dto.SummaryScheduleDTO, error) {
+func (s *scheduleService) GetAllSchedules() ([]dto.GetSummaryScheduleResDTO, error) {
+
 	schedules, err := s.repo.FindAll()
+
 	if err != nil {
 		return nil, err
 	}
 
-	var res []dto.SummaryScheduleDTO
+	var res []dto.GetSummaryScheduleResDTO
 	for _, sch := range schedules {
-		res = append(res, dto.SummaryScheduleDTO{
+		res = append(res, dto.GetSummaryScheduleResDTO{
 			ScheduleID:    sch.ScheduleID,
+			StartDate:     sch.StartDate,
+			EndDate:     sch.EndDate,
 			StartTime:     sch.StartTime,
 			EndTime:       sch.EndTime,
 			RepeatPattern: sch.RepeatPattern,
+			IsUrgent: sch.IsUrgent,
 		})
 	}
+
 	return res, nil
 }
 
-// GET by ID → Detail DTO
-func (s *scheduleService) GetScheduleByID(id uint) (dto.DetailScheduleDTO, error) {
+func (s *scheduleService) GetScheduleByID(id uint) (dto.GetDetailScheduleResDTO, error) {
+
 	schedule, err := s.repo.FindByID(id)
+
 	if err != nil {
-		return dto.DetailScheduleDTO{}, err
+		return dto.GetDetailScheduleResDTO{}, err
 	}
 
-	var playlist *dto.SummaryPlaylistDTO
-	if schedule.Playlist != nil {
-		playlist = &dto.SummaryPlaylistDTO{
+	var playlist dto.GetSummaryPlaylistResDTO
+	playlist = dto.GetSummaryPlaylistResDTO{
 			PlaylistID:  schedule.Playlist.PlaylistID,
 			Name:        schedule.Playlist.Name,
 			Description: schedule.Playlist.Description,
-		}
 	}
 
-	return dto.DetailScheduleDTO{
-		ScheduleID:    schedule.ScheduleID,
-		StartTime:     schedule.StartTime,
-		EndTime:       schedule.EndTime,
-		RepeatPattern: schedule.RepeatPattern,
-		CreatedAt:     schedule.CreatedAt,
-		UpdatedAt:     schedule.UpdatedAt,
+	return dto.GetDetailScheduleResDTO{
+			ScheduleID:    schedule.ScheduleID,
+			StartDate:     schedule.StartDate,
+			EndDate:     schedule.EndDate,
+			StartTime:     schedule.StartTime,
+			EndTime:       schedule.EndTime,
+			RepeatPattern: schedule.RepeatPattern,
+			IsUrgent: schedule.IsUrgent,
 		Playlist:      playlist,
 	}, nil
 }
 
-// POST → Create DTO
-func (s *scheduleService) CreateSchedule(req dto.CreateScheduleReqDTO) (dto.CreateScheduleResDTO, error) {
+func (s *scheduleService) CreateSchedule(req dto.CreateScheduleReqDTO) (dto.GetSummaryScheduleResDTO, error) {
+	
 	schedule := models.Schedule{
 		PlaylistID:    req.PlaylistID,
 		StartTime:     req.StartTime,
@@ -78,24 +83,23 @@ func (s *scheduleService) CreateSchedule(req dto.CreateScheduleReqDTO) (dto.Crea
 	}
 
 	if err := s.repo.Create(&schedule); err != nil {
-		return dto.CreateScheduleResDTO{}, err
+		return dto.GetSummaryScheduleResDTO{}, err
 	}
 
-	return dto.CreateScheduleResDTO{
+	return dto.GetSummaryScheduleResDTO{
 		ScheduleID:    schedule.ScheduleID,
 		StartTime:     schedule.StartTime,
 		EndTime:       schedule.EndTime,
 		RepeatPattern: schedule.RepeatPattern,
-		CreatedAt:     schedule.CreatedAt,
-		UpdatedAt:     schedule.UpdatedAt,
 	}, nil
 }
 
-// PUT/PATCH → Update DTO
-func (s *scheduleService) UpdateSchedule(req dto.UpdateScheduleReqDTO) (dto.UpdateScheduleResDTO, error) {
+func (s *scheduleService) UpdateSchedule(req dto.UpdateScheduleReqDTO) (dto.GetSummaryScheduleResDTO, error) {
+	
 	schedule, err := s.repo.FindByID(req.ScheduleID)
+	
 	if err != nil {
-		return dto.UpdateScheduleResDTO{}, err
+		return dto.GetSummaryScheduleResDTO{}, err
 	}
 
 	if req.PlaylistID != nil {
@@ -112,20 +116,18 @@ func (s *scheduleService) UpdateSchedule(req dto.UpdateScheduleReqDTO) (dto.Upda
 	}
 
 	if err := s.repo.Update(schedule); err != nil {
-		return dto.UpdateScheduleResDTO{}, err
+		return dto.GetSummaryScheduleResDTO{}, err
 	}
 
-	return dto.UpdateScheduleResDTO{
+	return dto.GetSummaryScheduleResDTO{
 		ScheduleID:    schedule.ScheduleID,
 		StartTime:     schedule.StartTime,
 		EndTime:       schedule.EndTime,
 		RepeatPattern: schedule.RepeatPattern,
-		CreatedAt:     schedule.CreatedAt,
-		UpdatedAt:     schedule.UpdatedAt,
+
 	}, nil
 }
 
-// DELETE
 func (s *scheduleService) DeleteSchedule(id uint) error {
 	return s.repo.Delete(id)
 }

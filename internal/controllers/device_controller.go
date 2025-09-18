@@ -17,71 +17,78 @@ func NewDeviceController(service services.DeviceService) *DeviceController {
 	return &DeviceController{service}
 }
 
-// GET /devices
 func (c *DeviceController) GetDevices(ctx *gin.Context) {
+	
 	devices, err := c.service.GetAllDevices()
+	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// devices = []dto.SummaryDeviceDTO
+	
 	ctx.JSON(http.StatusOK, devices)
 }
 
-// GET /devices/:id
 func (c *DeviceController) GetDevice(ctx *gin.Context) {
+	
 	id, _ := strconv.Atoi(ctx.Param("id"))
+	
 	device, err := c.service.GetDeviceByID(uint(id))
+	
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "device not found"})
 		return
 	}
-	// device = dto.DetailDeviceDTO
+	
 	ctx.JSON(http.StatusOK, device)
 }
 
-// POST /devices
 func (c *DeviceController) CreateDevice(ctx *gin.Context) {
+	
 	var req dto.CreateDeviceReqDTO
+	
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	res, err := c.service.CreateDevice(req)
+	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// res = dto.CreateDeviceResDTO
 	ctx.JSON(http.StatusCreated, res)
 }
 
-// PUT/PATCH /devices/:id
 func (c *DeviceController) UpdateDevice(ctx *gin.Context) {
+	
 	var req dto.UpdateDeviceReqDTO
+	
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	res, err := c.service.UpdateDevice(req)
+	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// res = dto.UpdateDeviceResDTO
 	ctx.JSON(http.StatusOK, res)
 }
 
-// DELETE /devices/:id
 func (c *DeviceController) DeleteDevice(ctx *gin.Context) {
+	
 	id, _ := strconv.Atoi(ctx.Param("id"))
+	
 	if err := c.service.DeleteDevice(uint(id)); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	
 	ctx.JSON(http.StatusOK, gin.H{"message": "device deleted"})
 }

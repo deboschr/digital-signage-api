@@ -19,7 +19,6 @@ func ContentRoutes(r *gin.RouterGroup, db *gorm.DB) {
 		content.GET("", controller.GetContents)
 		content.GET("/:id", controller.GetContent)
 		content.POST("", controller.CreateContent)
-		content.PATCH("", controller.UpdateContent)
 		content.DELETE("/:id", controller.DeleteContent)
 	}
 }

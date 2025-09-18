@@ -2,16 +2,22 @@ package dto
 
 type GetSummaryScheduleResDTO struct {
 	ScheduleID    uint   `json:"schedule_id"`
-	StartTime     int64  `json:"start_time"`
-	EndTime       int64  `json:"end_time"`
+	StartDate     int64  `json:"start_date"`
+	EndDate       int64  `json:"end_date"`
+	StartTime     string `json:"start_time"`
+	EndTime       string `json:"end_time"`
 	RepeatPattern string `json:"repeat_pattern"`
+	IsUrgent      bool   `json:"is_urgent"`
 }
 
 type GetDetailScheduleResDTO struct {
 	ScheduleID    uint                     `json:"schedule_id"`
-	StartTime     int64                    `json:"start_time"`
-	EndTime       int64                    `json:"end_time"`
+	StartDate     int64                    `json:"start_date"`
+	EndDate       int64                    `json:"end_date"`
+	StartTime     string                   `json:"start_time"`
+	EndTime       string                   `json:"end_time"`
 	RepeatPattern string                   `json:"repeat_pattern"`
+	IsUrgent      bool                     `json:"is_urgent"`
 	Airport       GetSummaryAirportResDTO  `json:"airport"`
 	Playlist      GetSummaryPlaylistResDTO `json:"playlist"`
 }

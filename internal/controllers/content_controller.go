@@ -20,33 +20,36 @@ func NewContentController(service services.ContentService) *ContentController {
 	return &ContentController{service}
 }
 
-// GET /contents
 func (c *ContentController) GetContents(ctx *gin.Context) {
+	
 	contents, err := c.service.GetAllContents()
+	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	// contents = []dto.SummaryContentDTO
+	
 	ctx.JSON(http.StatusOK, contents)
 }
 
-// GET /contents/:id
 func (c *ContentController) GetContent(ctx *gin.Context) {
+	
 	id, _ := strconv.Atoi(ctx.Param("id"))
+	
 	content, err := c.service.GetContentByID(uint(id))
+	
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "content not found"})
 		return
 	}
-	// content = dto.DetailContentDTO
+	
 	ctx.JSON(http.StatusOK, content)
 }
 
-// POST /contents
-// multipart/form-data dengan field: file (required)
 func (c *ContentController) CreateContent(ctx *gin.Context) {
+	
 	file, err := ctx.FormFile("file")
+	
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
 		return
@@ -74,6 +77,7 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 		ctype = "video"
 	}
 
+
 	// Default duration = 0 (foto). Bisa dihitung pakai ffprobe untuk video.
 	duration := 0
 
@@ -95,23 +99,6 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, res)
 }
 
-// PUT/PATCH /contents/:id
-func (c *ContentController) UpdateContent(ctx *gin.Context) {
-	var req dto.UpdateContentReqDTO
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	res, err := c.service.UpdateContent(req)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// res = dto.UpdateContentResDTO
-	ctx.JSON(http.StatusOK, res)
-}
 
 // DELETE /contents/:id
 func (c *ContentController) DeleteContent(ctx *gin.Context) {

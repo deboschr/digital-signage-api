@@ -16,5 +16,5 @@ type Schedule struct {
 	RepeatPattern string `gorm:"type:enum('once','daily','weekly','mon','tue','wed','thu','fri','sat','sun');not null;column:repeat_pattern"`
 	IsUrgent      bool   `gorm:"type:tinyint(1);not null;default:0;column:is_urgent"`
 
-	Playlist *Playlist `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
+	Playlist Playlist `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 }

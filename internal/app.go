@@ -7,13 +7,16 @@ import (
 	// "digital_signage_api/internal/models"
 	"digital_signage_api/internal/config"
 	"digital_signage_api/internal/tcp"
+
 	// "os"
 
-	"net/http"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+
+	"fmt"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"fmt"
 )
 
 func InitApp() {
@@ -39,6 +42,7 @@ func InitApp() {
 	r := gin.Default()
 
 	// aktifkan CORS
+	r.Use(cors.Default())	// aktifkan CORS untuk semua origin (development only)
 	// r.Use(cors.New(cors.Config{
 	// 	AllowOrigins:     []string{"http://localhost:5173"}, // asal frontend Vite
    //  	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -47,34 +51,15 @@ func InitApp() {
    //  	AllowCredentials: true,
 	// }))
 	
-	// aktifkan CORS untuk semua origin (development only)
-   r.Use(cors.Default())
+	
+
+	// session store pakai cookie (bisa juga redis/memcached)
+	store := cookie.NewStore([]byte("super-secret-key"))
+	r.Use(sessions.Sessions("my_session", store))
 
 	cfg := config.Load()
-	// serve static media pakai path dari .env
-	// serve static media pakai path dari env
 	fmt.Println("Serving media from:", cfg.StaticPath)
 	r.Static("/media", cfg.StaticPath)
-
-
-	
-	// health endpoints
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
-
-	r.GET("/ready", func(c *gin.Context) {
-		sqlDB, err := db.DB.DB()
-		if err != nil || sqlDB.Ping() != nil {
-			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "degraded"})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"status": "ready"})
-	})
-	
-	// folder statis untuk menyimpan konten
-	// staticPath := os.Getenv("STATIC_PATH") // "../media"
-	// r.Static(staticPath, ".."+staticPath)
 
 
 	// group API v1
