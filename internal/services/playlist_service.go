@@ -69,6 +69,7 @@ func (s *playlistService) GetPlaylist(id uint) (dto.GetDetailPlaylistResDTO, err
 		content := dto.GetPlaylistContentResDTO{
 			ContentID: pc.Content.ContentID,
 			Title:     pc.Content.Title,
+			Type:      pc.Content.Type,
 			Order:     pc.Order,
 			Duration:  pc.Content.Duration,
 			URL: 			utils.BuildContentURL(pc.Content.Title),
@@ -81,9 +82,12 @@ func (s *playlistService) GetPlaylist(id uint) (dto.GetDetailPlaylistResDTO, err
 	for _, sch := range playlist.Schedules {
 		schedule := dto.GetSummaryScheduleResDTO{
 			ScheduleID:    sch.ScheduleID,
+			StartDate:     sch.StartDate,
+			EndDate:       sch.EndDate,
 			StartTime:     sch.StartTime,
 			EndTime:       sch.EndTime,
 			RepeatPattern: sch.RepeatPattern,
+			IsUrgent:      sch.IsUrgent,
 		}
 		
 		schedules = append(schedules, &schedule)

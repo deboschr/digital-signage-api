@@ -23,6 +23,9 @@ var upgrader = websocket.Upgrader{
 var deviceConns = make(map[uint]*websocket.Conn) // DeviceID -> Conn
 var mu sync.Mutex
 
+// cache terakhir schedule yang dikirim -> biar tidak spam kirim schedule sama
+var lastScheduleSent = make(map[uint]uint) // DeviceID -> ScheduleID
+
 func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device models.Device) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -49,6 +52,7 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 
 	mu.Lock()
 	delete(deviceConns, device.DeviceID)
+	delete(lastScheduleSent, device.DeviceID)
 	mu.Unlock()
 	conn.Close()
 	fmt.Printf("❌ device %d disconnected\n", device.DeviceID)
@@ -66,7 +70,7 @@ func SendActiveSchedule(device models.Device) {
 
 	now := time.Now()
 	nowEpochMs := now.UnixMilli()
-	nowTime := now.Format("15:04:05") // jam:menit:detik
+	nowTime := now.Format("15:04:05") // current time string
 
 	// Ambil semua schedule milik airport device
 	var schedules []models.Schedule
@@ -101,8 +105,17 @@ func SendActiveSchedule(device models.Device) {
 	}
 
 	if active == nil {
-		msg := `{"message":"no active schedule"}` 
+		msg := `{"message":"no active schedule"}`
 		conn.WriteMessage(websocket.TextMessage, []byte(msg))
+		return
+	}
+
+	// cek apakah schedule sama dengan sebelumnya
+	mu.Lock()
+	lastSent := lastScheduleSent[device.DeviceID]
+	mu.Unlock()
+	if lastSent == active.ScheduleID {
+		// tidak kirim ulang kalau belum berubah
 		return
 	}
 
@@ -110,6 +123,11 @@ func SendActiveSchedule(device models.Device) {
 	playlist := active.Playlist
 	payload := dto.ActiveScheduleRes{
 		ScheduleID: active.ScheduleID,
+		IsUrgent:   active.IsUrgent,
+		StartDate:  active.StartDate,
+		EndDate:    active.EndDate,
+		StartTime:  active.StartTime, // langsung string "HH:MM:SS"
+		EndTime:    active.EndTime,
 		PlaylistID: playlist.PlaylistID,
 		Name:       playlist.Name,
 	}
@@ -133,14 +151,23 @@ func SendActiveSchedule(device models.Device) {
 	data, _ := json.Marshal(payload)
 	fmt.Println("Sending to device:", string(data))
 	conn.WriteMessage(websocket.TextMessage, data)
+
+	mu.Lock()
+	lastScheduleSent[device.DeviceID] = active.ScheduleID
+	mu.Unlock()
 }
 
 // Helper: cek apakah nowTime ada di range StartTime–EndTime
-func isTimeInRange(now, start, end string) bool {
+func isTimeInRange(nowStr, startStr, endStr string) bool {
 	layout := "15:04:05"
-	nowT, _ := time.Parse(layout, now)
-	startT, _ := time.Parse(layout, start)
-	endT, _ := time.Parse(layout, end)
+
+	nowT, err1 := time.Parse(layout, nowStr)
+	startT, err2 := time.Parse(layout, startStr)
+	endT, err3 := time.Parse(layout, endStr)
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		return false
+	}
 
 	if startT.Before(endT) {
 		// normal range (ex: 08:00–17:00)
@@ -148,5 +175,35 @@ func isTimeInRange(now, start, end string) bool {
 	} else {
 		// lewat tengah malam (ex: 21:00–03:00)
 		return !nowT.Before(startT) || !nowT.After(endT)
+	}
+}
+
+// RunScheduler jalan di background setiap 1 menit
+func RunScheduler() {
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C
+
+		mu.Lock()
+		// copy biar aman dipakai di loop
+		conns := make(map[uint]*websocket.Conn)
+		for id, conn := range deviceConns {
+			conns[id] = conn
+		}
+		mu.Unlock()
+
+		for deviceID := range conns {
+			// ambil device dari DB biar tahu airport_id
+			var device models.Device
+			if err := db.DB.Preload("Airport").First(&device, deviceID).Error; err != nil {
+				fmt.Println("⚠️ gagal ambil device:", err)
+				continue
+			}
+
+			// kirim schedule aktif
+			SendActiveSchedule(device)
+		}
 	}
 }

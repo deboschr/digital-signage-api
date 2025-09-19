@@ -46,36 +46,46 @@ func (s *contentService) GetContents() ([]dto.GetSummaryContentResDTO, error) {
 }
 
 func (s *contentService) GetContent(id uint) (dto.GetDetailContentResDTO, error) {
-	
-	content, err := s.repo.FindByID(id)
-	if err != nil {
-		return dto.GetDetailContentResDTO{}, err
-	}
+    content, err := s.repo.FindByID(id)
+    if err != nil {
+        return dto.GetDetailContentResDTO{}, err
+    }
 
-	playlists := []*dto.GetSummaryPlaylistResDTO{}
-	for _, p := range content.Playlists {
-		playlist := dto.GetSummaryPlaylistResDTO{
-			PlaylistID:  p.PlaylistID,
-			Name:        p.Name,
-			Description: p.Description,
-		}
+    // Mapping playlists
+    playlists := []*dto.GetSummaryPlaylistResDTO{}
+    for _, p := range content.Playlists {
+        playlist := dto.GetSummaryPlaylistResDTO{
+            PlaylistID:  p.PlaylistID,
+            Name:        p.Name,
+            Description: p.Description,
+        }
+        playlists = append(playlists, &playlist)
+    }
 
-		playlists = append(playlists, &playlist)
-	}
+    // Mapping airport
+    airport := dto.GetSummaryAirportResDTO{
+        AirportID: content.Airport.AirportID,
+        Name:      content.Airport.Name,
+        Code:      content.Airport.Code,
+        Address:   content.Airport.Address,
+    }
 
-	return dto.GetDetailContentResDTO{
-		ContentID: content.ContentID,
-		Title:     content.Title,
-		Type:      content.Type,
-		Duration:  content.Duration,
-		URL:       utils.BuildContentURL(content.Title),
-		Playlists: playlists,
-	}, nil
+    return dto.GetDetailContentResDTO{
+        ContentID: content.ContentID,
+        Title:     content.Title,
+        Type:      content.Type,
+        Duration:  content.Duration,
+        URL:       utils.BuildContentURL(content.Title),
+        Playlists: playlists,
+        Airport:   airport,
+    }, nil
 }
+
 
 
 func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.GetSummaryContentResDTO, error) {
 	content := models.Content{
+		AirportID:    req.AirportID,
 		Title:    req.Title,
 		Type:     req.Type,
 		Duration: req.Duration,

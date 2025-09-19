@@ -35,7 +35,9 @@ func (r *scheduleRepository) FindByID(id uint) (*models.Schedule, error) {
 	
 	var schedule models.Schedule
 	
-	err := r.db.Preload("Playlist").
+	err := r.db.
+		Preload("Playlist").
+		Preload("Airport").
 		First(&schedule, "schedule_id = ?", id).Error
 	
 	if err != nil {

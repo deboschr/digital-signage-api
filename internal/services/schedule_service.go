@@ -4,6 +4,7 @@ import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/repositories"
+	// "time"
 )
 
 type ScheduleService interface {
@@ -34,6 +35,7 @@ func (s *scheduleService) GetSchedules() ([]dto.GetSummaryScheduleResDTO, error)
 	for _, sch := range schedules {
 		res = append(res, dto.GetSummaryScheduleResDTO{
 			ScheduleID:    sch.ScheduleID,
+			Playlist:     sch.Playlist.Name,
 			StartDate:     sch.StartDate,
 			EndDate:     sch.EndDate,
 			StartTime:     sch.StartTime,
@@ -60,25 +62,42 @@ func (s *scheduleService) GetSchedule(id uint) (dto.GetDetailScheduleResDTO, err
 		Description: schedule.Playlist.Description,
 	}
 
+	    // Mapping airport
+   airport := dto.GetSummaryAirportResDTO{
+      AirportID: schedule.Airport.AirportID,
+   	Name:      schedule.Airport.Name,
+      Code:      schedule.Airport.Code,
+      Address:   schedule.Airport.Address,
+   }
+
 	return dto.GetDetailScheduleResDTO{
 		ScheduleID:    schedule.ScheduleID,
 		StartDate:     schedule.StartDate,
 		EndDate:     schedule.EndDate,
-		StartTime:     schedule.StartTime,
-		EndTime:       schedule.EndTime,
+		StartTime: schedule.StartTime,
+		EndTime:   schedule.EndTime,
 		RepeatPattern: schedule.RepeatPattern,
 		IsUrgent: schedule.IsUrgent,
 		Playlist:      playlist,
+		Airport:      airport,
 	}, nil
 }
 
 func (s *scheduleService) CreateSchedule(req dto.CreateScheduleReqDTO) (dto.GetSummaryScheduleResDTO, error) {
 	
+	// layout := "15:04:05"
+	// startTime, _ := time.Parse(layout, req.StartTime)
+	// endTime, _ := time.Parse(layout, req.EndTime)
+
 	schedule := models.Schedule{
 		PlaylistID:    req.PlaylistID,
-		StartTime:     req.StartTime,
-		EndTime:       req.EndTime,
+		AirportID:     req.AirportID,
+		StartDate:     req.StartDate,
+		EndDate:       req.EndDate,
+    	StartTime:     req.StartTime,
+    	EndTime:       req.EndTime,
 		RepeatPattern: req.RepeatPattern,
+		IsUrgent:      req.IsUrgent,
 	}
 
 	if err := s.repo.Create(&schedule); err != nil {
@@ -87,9 +106,12 @@ func (s *scheduleService) CreateSchedule(req dto.CreateScheduleReqDTO) (dto.GetS
 
 	return dto.GetSummaryScheduleResDTO{
 		ScheduleID:    schedule.ScheduleID,
+		StartDate:     schedule.StartDate,
+		EndDate:       schedule.EndDate,
 		StartTime:     schedule.StartTime,
 		EndTime:       schedule.EndTime,
 		RepeatPattern: schedule.RepeatPattern,
+		IsUrgent:      schedule.IsUrgent,
 	}, nil
 }
 
@@ -101,17 +123,34 @@ func (s *scheduleService) UpdateSchedule(req dto.UpdateScheduleReqDTO) (dto.GetS
 		return dto.GetSummaryScheduleResDTO{}, err
 	}
 
+	if req.AirportID != nil {
+		schedule.AirportID = *req.AirportID
+	}
 	if req.PlaylistID != nil {
 		schedule.PlaylistID = *req.PlaylistID
 	}
+	if req.StartDate != nil {
+		schedule.StartDate = *req.StartDate
+	}
+	if req.EndDate != nil {
+		schedule.EndDate = *req.EndDate
+	}
 	if req.StartTime != nil {
-		schedule.StartTime = *req.StartTime
+    	// layout := "15:04:05"
+    	// startTime, _ := time.Parse(layout, *req.StartTime)
+    	schedule.StartTime = *req.StartTime
 	}
 	if req.EndTime != nil {
-		schedule.EndTime = *req.EndTime
+    	// layout := "15:04:05"
+    	// endTime, _ := time.Parse(layout, *req.EndTime)
+    	schedule.EndTime = *req.EndTime
 	}
+
 	if req.RepeatPattern != nil {
 		schedule.RepeatPattern = *req.RepeatPattern
+	}
+	if req.IsUrgent != nil {
+		schedule.IsUrgent = *req.IsUrgent
 	}
 
 	if err := s.repo.Update(schedule); err != nil {
@@ -120,10 +159,12 @@ func (s *scheduleService) UpdateSchedule(req dto.UpdateScheduleReqDTO) (dto.GetS
 
 	return dto.GetSummaryScheduleResDTO{
 		ScheduleID:    schedule.ScheduleID,
+		StartDate:     schedule.StartDate,
+		EndDate:       schedule.EndDate,
 		StartTime:     schedule.StartTime,
 		EndTime:       schedule.EndTime,
 		RepeatPattern: schedule.RepeatPattern,
-
+		IsUrgent:      schedule.IsUrgent,
 	}, nil
 }
 

@@ -38,6 +38,7 @@ func (s *deviceService) GetDevices() ([]dto.GetSummaryDeviceResDTO, error) {
 		res = append(res, dto.GetSummaryDeviceResDTO{
 			DeviceID:  d.DeviceID,
 			Name:      d.Name,
+			ApiKey:    d.ApiKey,
 			IsConnected:    d.IsConnected,
 		})
 	}
@@ -61,6 +62,8 @@ func (s *deviceService) GetDevice(id uint) (dto.GetDetailDeviceResDTO, error) {
 	return dto.GetDetailDeviceResDTO{
 		DeviceID:  device.DeviceID,
 		Name:      device.Name,
+		ApiKey:      device.ApiKey,
+		IsConnected:      device.IsConnected,
 		Airport:   airport,
 	}, nil
 }
@@ -80,6 +83,7 @@ func (s *deviceService) CreateDevice(req dto.CreateDeviceReqDTO) (dto.GetSummary
 	return dto.GetSummaryDeviceResDTO{
 		DeviceID:  device.DeviceID,
 		Name:      device.Name,
+		ApiKey:    device.ApiKey,
 		IsConnected:    device.IsConnected,
 	}, nil
 }
@@ -105,9 +109,12 @@ func (s *deviceService) UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.GetSummary
 		return dto.GetSummaryDeviceResDTO{}, err
 	}
 
+
+
 	return dto.GetSummaryDeviceResDTO{
 		DeviceID:  device.DeviceID,
 		Name:      device.Name,
+		ApiKey:    device.ApiKey,
 		IsConnected:    device.IsConnected,
 	}, nil
 }

@@ -40,7 +40,7 @@ func (r *contentRepository) FindByID(id uint) (*models.Content, error) {
 	
 	err := r.db.
 		Preload("Playlists").
-		Preload("Playlists.Airport").
+		Preload("Airport").
 		First(&content, "content_id = ?", id).Error
 	
 	if err != nil {
