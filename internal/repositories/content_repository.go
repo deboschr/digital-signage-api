@@ -22,23 +22,27 @@ func NewContentRepository(db *gorm.DB) ContentRepository {
 	return &contentRepository{db}
 }
 
-// Untuk summary list → preload Playlists cukup
-// Untuk detail → preload Playlists (beserta Airport) agar bisa dipakai DTO
 func (r *contentRepository) FindAll() ([]models.Content, error) {
+	
 	var contents []models.Content
+	
 	err := r.db.
 		Preload("Playlists").
 		Preload("Playlists.Airport").
 		Find(&contents).Error
+	
 	return contents, err
 }
 
 func (r *contentRepository) FindByID(id uint) (*models.Content, error) {
+	
 	var content models.Content
+	
 	err := r.db.
 		Preload("Playlists").
 		Preload("Playlists.Airport").
 		First(&content, "content_id = ?", id).Error
+	
 	if err != nil {
 		return nil, err
 	}

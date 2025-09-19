@@ -25,7 +25,7 @@ func NewDeviceRepository(db *gorm.DB) DeviceRepository {
 
 func (r *deviceRepository) FindAll() ([]models.Device, error) {
 	var devices []models.Device
-	err := r.db.Preload("Airport").Find(&devices).Error
+	err := r.db.Find(&devices).Error
 	return devices, err
 }
 

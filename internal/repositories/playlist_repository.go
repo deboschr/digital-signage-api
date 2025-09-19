@@ -27,25 +27,25 @@ func NewPlaylistRepository(db *gorm.DB) PlaylistRepository {
 	return &playlistRepository{db}
 }
 
-// Untuk summary list playlist
 func (r *playlistRepository) FindAll() ([]models.Playlist, error) {
+	
 	var playlists []models.Playlist
-	err := r.db.
-		Preload("Airport").
-		Preload("Schedules").
-		Preload("PlaylistContent.Content"). // penting! ambil pivot + content
-		Find(&playlists).Error
+	
+	err := r.db.Find(&playlists).Error
+	
 	return playlists, err
 }
 
-// Untuk detail playlist lengkap
 func (r *playlistRepository) FindByID(id uint) (*models.Playlist, error) {
+	
 	var playlist models.Playlist
+	
 	err := r.db.
 		Preload("Airport").
 		Preload("Schedules").
 		Preload("PlaylistContent.Content").
 		First(&playlist, "playlist_id = ?", id).Error
+	
 	if err != nil {
 		return nil, err
 	}

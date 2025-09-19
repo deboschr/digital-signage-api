@@ -57,37 +57,37 @@ func (s *playlistService) GetPlaylist(id uint) (dto.GetDetailPlaylistResDTO, err
 		return dto.GetDetailPlaylistResDTO{}, err
 	}
 
-	var airport *dto.GetSummaryAirportResDTO
-	if playlist.Airport != nil {
-		airport = &dto.GetSummaryAirportResDTO{
-			AirportID: playlist.Airport.AirportID,
-			Name:      playlist.Airport.Name,
-			Code:      playlist.Airport.Code,
-			Address:   playlist.Airport.Address,
-		}
+	var airport dto.GetSummaryAirportResDTO
+	airport = dto.GetSummaryAirportResDTO{
+		AirportID: playlist.Airport.AirportID,
+		Name:      playlist.Airport.Name,
+		Code:      playlist.Airport.Code,
+		Address:   playlist.Airport.Address,
 	}
 
-	contents := []dto.GetPlaylistContentResDTO{}
+	contents := []*dto.GetPlaylistContentResDTO{}
 	for _, pc := range playlist.PlaylistContent {
-		if pc.Content != nil {
-			contents = append(contents, dto.GetPlaylistContentResDTO{
-				ContentID: pc.Content.ContentID,
-				Title:     pc.Content.Title,
-				Order:     pc.Order,
-				Duration:  pc.Content.Duration,
-				URL: 			utils.BuildContentURL(pc.Content.Title),
-			})
+		content := dto.GetPlaylistContentResDTO{
+			ContentID: pc.Content.ContentID,
+			Title:     pc.Content.Title,
+			Order:     pc.Order,
+			Duration:  pc.Content.Duration,
+			URL: 			utils.BuildContentURL(pc.Content.Title),
 		}
+			
+		contents = append(contents,&content )
 	}
 
-	schedules := []dto.GetSummaryScheduleResDTO{}
+	schedules := []*dto.GetSummaryScheduleResDTO{}
 	for _, sch := range playlist.Schedules {
-		schedules = append(schedules, dto.GetSummaryScheduleResDTO{
+		schedule := dto.GetSummaryScheduleResDTO{
 			ScheduleID:    sch.ScheduleID,
 			StartTime:     sch.StartTime,
 			EndTime:       sch.EndTime,
 			RepeatPattern: sch.RepeatPattern,
-		})
+		}
+		
+		schedules = append(schedules, &schedule)
 	}
 
 	return dto.GetDetailPlaylistResDTO{
@@ -101,6 +101,7 @@ func (s *playlistService) GetPlaylist(id uint) (dto.GetDetailPlaylistResDTO, err
 }
 
 func (s *playlistService) CreatePlaylist(req dto.CreatePlaylistReqDTO) (dto.GetSummaryPlaylistResDTO, error) {
+	
 	playlist := models.Playlist{
 		AirportID:   req.AirportID,
 		Name:        req.Name,
@@ -118,13 +119,13 @@ func (s *playlistService) CreatePlaylist(req dto.CreatePlaylistReqDTO) (dto.GetS
 	}, nil
 }
 
-// PUT/PATCH → Update DTO
 func (s *playlistService) UpdatePlaylist(req dto.UpdatePlaylistReqDTO) (dto.GetSummaryPlaylistResDTO, error) {
+	
 	playlist, err := s.repo.FindByID(req.PlaylistID)
+	
 	if err != nil {
 		return dto.GetSummaryPlaylistResDTO{}, err
 	}
-
 	if req.AirportID != nil {
 		playlist.AirportID = *req.AirportID
 	}

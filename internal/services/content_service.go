@@ -24,7 +24,9 @@ func NewContentService(repo repositories.ContentRepository) ContentService {
 }
 
 func (s *contentService) GetContents() ([]dto.GetSummaryContentResDTO, error) {
+	
 	contents, err := s.repo.FindAll()
+	
 	if err != nil {
 		return nil, err
 	}
@@ -39,23 +41,26 @@ func (s *contentService) GetContents() ([]dto.GetSummaryContentResDTO, error) {
 			URL:       utils.BuildContentURL(c.Title),
 		})
 	}
+	
 	return res, nil
 }
 
-// GET by ID → Detail DTO
 func (s *contentService) GetContent(id uint) (dto.GetDetailContentResDTO, error) {
+	
 	content, err := s.repo.FindByID(id)
 	if err != nil {
 		return dto.GetDetailContentResDTO{}, err
 	}
 
-	playlists := []dto.SummaryPlaylistDTO{}
+	playlists := []*dto.GetSummaryPlaylistResDTO{}
 	for _, p := range content.Playlists {
-		playlists = append(playlists, dto.SummaryPlaylistDTO{
+		playlist := dto.GetSummaryPlaylistResDTO{
 			PlaylistID:  p.PlaylistID,
 			Name:        p.Name,
 			Description: p.Description,
-		})
+		}
+
+		playlists = append(playlists, &playlist)
 	}
 
 	return dto.GetDetailContentResDTO{
@@ -69,7 +74,6 @@ func (s *contentService) GetContent(id uint) (dto.GetDetailContentResDTO, error)
 }
 
 
-// POST → Create DTO
 func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.GetSummaryContentResDTO, error) {
 	content := models.Content{
 		Title:    req.Title,
@@ -89,38 +93,7 @@ func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.GetSumm
 	}, nil
 }
 
-// PUT/PATCH → Update DTO
-func (s *contentService) UpdateContent(req dto.UpdateContentReqDTO) (dto.UpdateContentResDTO, error) {
-	content, err := s.repo.FindByID(req.ContentID)
-	if err != nil {
-		return dto.UpdateContentResDTO{}, err
-	}
 
-	if req.Title != nil {
-		content.Title = *req.Title
-	}
-	if req.Type != nil {
-		content.Type = *req.Type
-	}
-	if req.Duration != nil {
-		content.Duration = *req.Duration
-	}
-
-	if err := s.repo.Update(content); err != nil {
-		return dto.UpdateContentResDTO{}, err
-	}
-
-	return dto.UpdateContentResDTO{
-		ContentID: content.ContentID,
-		Title:     content.Title,
-		Type:      content.Type,
-		Duration:  content.Duration,
-		CreatedAt: content.CreatedAt,
-		UpdatedAt: content.UpdatedAt,
-	}, nil
-}
-
-// DELETE
 func (s *contentService) DeleteContent(id uint) error {
 	return s.repo.Delete(id)
 }
