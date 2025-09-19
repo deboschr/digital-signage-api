@@ -7,7 +7,8 @@ type Airport struct {
 	Address   *string `gorm:"size:255;column:address"`
 
 	Users     []*User     `gorm:"foreignKey:AirportID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE"`
-	Contents  []*Content  `gorm:"foreignKey:AirportID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 	Devices   []*Device   `gorm:"foreignKey:AirportID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
+	Contents  []*Content  `gorm:"foreignKey:AirportID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 	Playlists []*Playlist `gorm:"foreignKey:AirportID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
+	Schedules []*Schedule `gorm:"foreignKey:AirportID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 }

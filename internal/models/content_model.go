@@ -9,5 +9,5 @@ type Content struct {
 
 	Playlists       []*Playlist        `gorm:"many2many:playlist_contents;joinForeignKey:ContentID;joinReferences:PlaylistID"`
 	PlaylistContent []*PlaylistContent `gorm:"foreignKey:ContentID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
-	Airport         *Airport           `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
+	Airport         Airport            `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 }

@@ -18,7 +18,6 @@ type GetDetailScheduleResDTO struct {
 	EndTime       string                   `json:"end_time"`
 	RepeatPattern string                   `json:"repeat_pattern"`
 	IsUrgent      bool                     `json:"is_urgent"`
-	Airport       GetSummaryAirportResDTO  `json:"airport"`
 	Playlist      GetSummaryPlaylistResDTO `json:"playlist"`
 }
 
