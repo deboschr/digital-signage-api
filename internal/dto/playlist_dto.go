@@ -11,6 +11,7 @@ type GetDetailPlaylistResDTO struct {
 	Name        string                      `json:"name"`
 	Description *string                     `json:"description"`
 	Airport     GetSummaryAirportResDTO     `json:"airport"`
+	Schedule    *[]GetSummaryScheduleResDTO `json:"schedules,omitempty"`
 	Contents    *[]GetPlaylistContentResDTO `json:"contents,omitempty"`
 }
 

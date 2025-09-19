@@ -3,6 +3,7 @@ package models
 type Schedule struct {
 	ScheduleID uint `gorm:"primaryKey;autoIncrement;column:schedule_id"`
 	PlaylistID uint `gorm:"not null;column:playlist_id"`
+	AirportID  uint `gorm:"not null;column:airport_id"`
 
 	// Periode aktif (epoch ms)
 	StartDate int64 `gorm:"not null;column:start_date"` // kapan mulai berlaku

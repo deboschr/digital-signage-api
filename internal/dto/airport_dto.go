@@ -14,8 +14,9 @@ type GetDetailAirportResDTO struct {
 	Address   *string                     `json:"address"`
 	Users     []*GetSummaryUserResDTO     `json:"users"`
 	Devices   []*GetSummaryDeviceResDTO   `json:"devices"`
-	Playlists []*GetSummaryPlaylistResDTO `json:"playlists"`
 	Contents  []*GetSummaryContentResDTO  `json:"contents"`
+	Playlists []*GetSummaryPlaylistResDTO `json:"playlists"`
+	Schedules []*GetSummaryScheduleResDTO `json:"schedules"`
 }
 
 type CreateAirportReqDTO struct {

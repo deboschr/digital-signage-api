@@ -19,6 +19,7 @@ type GetDetailScheduleResDTO struct {
 	RepeatPattern string                   `json:"repeat_pattern"`
 	IsUrgent      bool                     `json:"is_urgent"`
 	Playlist      GetSummaryPlaylistResDTO `json:"playlist"`
+	Airport       GetSummaryAirportResDTO  `json:"airport"`
 }
 
 type CreateScheduleReqDTO struct {
