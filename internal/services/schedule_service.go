@@ -54,21 +54,20 @@ func (s *scheduleService) GetSchedule(id uint) (dto.GetDetailScheduleResDTO, err
 		return dto.GetDetailScheduleResDTO{}, err
 	}
 
-	var playlist dto.GetSummaryPlaylistResDTO
-	playlist = dto.GetSummaryPlaylistResDTO{
-			PlaylistID:  schedule.Playlist.PlaylistID,
-			Name:        schedule.Playlist.Name,
-			Description: schedule.Playlist.Description,
+	playlist := dto.GetSummaryPlaylistResDTO{
+		PlaylistID:  schedule.Playlist.PlaylistID,
+		Name:        schedule.Playlist.Name,
+		Description: schedule.Playlist.Description,
 	}
 
 	return dto.GetDetailScheduleResDTO{
-			ScheduleID:    schedule.ScheduleID,
-			StartDate:     schedule.StartDate,
-			EndDate:     schedule.EndDate,
-			StartTime:     schedule.StartTime,
-			EndTime:       schedule.EndTime,
-			RepeatPattern: schedule.RepeatPattern,
-			IsUrgent: schedule.IsUrgent,
+		ScheduleID:    schedule.ScheduleID,
+		StartDate:     schedule.StartDate,
+		EndDate:     schedule.EndDate,
+		StartTime:     schedule.StartTime,
+		EndTime:       schedule.EndTime,
+		RepeatPattern: schedule.RepeatPattern,
+		IsUrgent: schedule.IsUrgent,
 		Playlist:      playlist,
 	}, nil
 }

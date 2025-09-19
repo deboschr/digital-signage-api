@@ -48,8 +48,7 @@ func (s *deviceService) GetDevice(id uint) (dto.GetDetailDeviceResDTO, error) {
 		return dto.GetDetailDeviceResDTO{}, err
 	}
 
-	var airport dto.GetSummaryAirportResDTO
-	airport = dto.GetSummaryAirportResDTO{
+	airport := dto.GetSummaryAirportResDTO{
 		AirportID: device.Airport.AirportID,
 		Name:      device.Airport.Name,
 		Code:      device.Airport.Code,

@@ -57,8 +57,7 @@ func (s *playlistService) GetPlaylist(id uint) (dto.GetDetailPlaylistResDTO, err
 		return dto.GetDetailPlaylistResDTO{}, err
 	}
 
-	var airport dto.GetSummaryAirportResDTO
-	airport = dto.GetSummaryAirportResDTO{
+	airport := dto.GetSummaryAirportResDTO{
 		AirportID: playlist.Airport.AirportID,
 		Name:      playlist.Airport.Name,
 		Code:      playlist.Airport.Code,
