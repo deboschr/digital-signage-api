@@ -19,7 +19,7 @@ func NewPlaylistController(service services.PlaylistService) *PlaylistController
 
 func (c *PlaylistController) GetPlaylists(ctx *gin.Context) {
 	
-	playlists, err := c.service.GetAllPlaylists()
+	playlists, err := c.service.GetPlaylists()
 	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -33,7 +33,7 @@ func (c *PlaylistController) GetPlaylist(ctx *gin.Context) {
 	
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	
-	playlist, err := c.service.GetPlaylistByID(uint(id))
+	playlist, err := c.service.GetPlaylist(uint(id))
 	
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "playlist not found"})

@@ -7,8 +7,8 @@ import (
 )
 
 type ScheduleService interface {
-	GetAllSchedules() ([]dto.GetSummaryScheduleResDTO, error)
-	GetScheduleByID(id uint) (dto.GetDetailScheduleResDTO, error)
+	GetSchedules() ([]dto.GetSummaryScheduleResDTO, error)
+	GetSchedule(id uint) (dto.GetDetailScheduleResDTO, error)
 	CreateSchedule(req dto.CreateScheduleReqDTO) (dto.GetSummaryScheduleResDTO, error)
 	UpdateSchedule(req dto.UpdateScheduleReqDTO) (dto.GetSummaryScheduleResDTO, error)
 	DeleteSchedule(id uint) error
@@ -22,7 +22,7 @@ func NewScheduleService(repo repositories.ScheduleRepository) ScheduleService {
 	return &scheduleService{repo}
 }
 
-func (s *scheduleService) GetAllSchedules() ([]dto.GetSummaryScheduleResDTO, error) {
+func (s *scheduleService) GetSchedules() ([]dto.GetSummaryScheduleResDTO, error) {
 
 	schedules, err := s.repo.FindAll()
 
@@ -46,7 +46,7 @@ func (s *scheduleService) GetAllSchedules() ([]dto.GetSummaryScheduleResDTO, err
 	return res, nil
 }
 
-func (s *scheduleService) GetScheduleByID(id uint) (dto.GetDetailScheduleResDTO, error) {
+func (s *scheduleService) GetSchedule(id uint) (dto.GetDetailScheduleResDTO, error) {
 
 	schedule, err := s.repo.FindByID(id)
 

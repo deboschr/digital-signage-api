@@ -7,14 +7,11 @@ type GetSummaryPlaylistResDTO struct {
 }
 
 type GetDetailPlaylistResDTO struct {
-	PlaylistID  uint                    `json:"playlist_id"`
-	Name        string                  `json:"name"`
-	Description *string                 `json:"description"`
-	Airport     GetSummaryAirportResDTO `json:"airport"`
-	Contents    *[]struct {
-		GetSummaryContentResDTO
-		Order int `json:"order"`
-	} `json:"contents,omitempty"`
+	PlaylistID  uint                        `json:"playlist_id"`
+	Name        string                      `json:"name"`
+	Description *string                     `json:"description"`
+	Airport     GetSummaryAirportResDTO     `json:"airport"`
+	Contents    *[]GetPlaylistContentResDTO `json:"contents,omitempty"`
 }
 
 type CreatePlaylistReqDTO struct {
@@ -49,4 +46,9 @@ type UpdatePlaylistContentReqDTO struct {
 type DeletePlaylistContentReqDTO struct {
 	PlaylistID uint   `json:"playlist_id" binding:"required,gt=0"`
 	ContentIDs []uint `json:"content_ids" binding:"required,min=1,dive,gt=0"`
+}
+
+type GetPlaylistContentResDTO struct {
+	GetSummaryContentResDTO
+	Order int `json:"order"`
 }

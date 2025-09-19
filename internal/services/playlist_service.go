@@ -8,15 +8,15 @@ import (
 )
 
 type PlaylistService interface {
-	GetAllPlaylists() ([]dto.SummaryPlaylistDTO, error)
-	GetPlaylistByID(id uint) (dto.DetailPlaylistDTO, error)
-	CreatePlaylist(req dto.CreatePlaylistReqDTO) (dto.CreatePlaylistResDTO, error)
-	UpdatePlaylist(req dto.UpdatePlaylistReqDTO) (dto.UpdatePlaylistResDTO, error)
+	GetPlaylists() ([]dto.GetSummaryPlaylistResDTO, error)
+	GetPlaylist(id uint) (dto.GetDetailPlaylistResDTO, error)
+	CreatePlaylist(req dto.CreatePlaylistReqDTO) (dto.GetSummaryPlaylistResDTO, error)
+	UpdatePlaylist(req dto.UpdatePlaylistReqDTO) (dto.GetSummaryPlaylistResDTO, error)
 	DeletePlaylist(id uint) error
 
 	// PlaylistContent
-	AddContents(req dto.CreatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error)
-	UpdateOrders(req dto.UpdatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error)
+	AddContents(req dto.CreatePlaylistContentReqDTO) (dto.GetDetailPlaylistResDTO, error)
+	UpdateOrders(req dto.UpdatePlaylistContentReqDTO) (dto.GetDetailPlaylistResDTO, error)
 	RemoveContents(req dto.DeletePlaylistContentReqDTO) error
 }
 
@@ -29,15 +29,15 @@ func NewPlaylistService(repo repositories.PlaylistRepository) PlaylistService {
 }
 
 // GET all → Summary DTO
-func (s *playlistService) GetAllPlaylists() ([]dto.SummaryPlaylistDTO, error) {
+func (s *playlistService) GetPlaylists() ([]dto.GetSummaryPlaylistResDTO, error) {
 	playlists, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var res []dto.SummaryPlaylistDTO
+	var res []dto.GetSummaryPlaylistResDTO
 	for _, p := range playlists {
-		res = append(res, dto.SummaryPlaylistDTO{
+		res = append(res, dto.GetSummaryPlaylistResDTO{
 			PlaylistID:  p.PlaylistID,
 			Name:        p.Name,
 			Description: p.Description,
@@ -47,15 +47,15 @@ func (s *playlistService) GetAllPlaylists() ([]dto.SummaryPlaylistDTO, error) {
 }
 
 // GET by ID → Detail DTO
-func (s *playlistService) GetPlaylistByID(id uint) (dto.DetailPlaylistDTO, error) {
+func (s *playlistService) GetPlaylist(id uint) (dto.GetDetailPlaylistResDTO, error) {
 	playlist, err := s.repo.FindByID(id)
 	if err != nil {
-		return dto.DetailPlaylistDTO{}, err
+		return dto.GetDetailPlaylistResDTO{}, err
 	}
 
-	var airport *dto.SummaryAirportDTO
+	var airport *dto.GetSummaryAirportResDTO
 	if playlist.Airport != nil {
-		airport = &dto.SummaryAirportDTO{
+		airport = &dto.GetSummaryAirportResDTO{
 			AirportID: playlist.Airport.AirportID,
 			Name:      playlist.Airport.Name,
 			Code:      playlist.Airport.Code,
@@ -63,10 +63,10 @@ func (s *playlistService) GetPlaylistByID(id uint) (dto.DetailPlaylistDTO, error
 		}
 	}
 
-	contents := []dto.PlaylistContentItemDTO{}
+	contents := []dto.GetPlaylistContentResDTO{}
 	for _, pc := range playlist.PlaylistContent {
 		if pc.Content != nil {
-			contents = append(contents, dto.PlaylistContentItemDTO{
+			contents = append(contents, dto.GetPlaylistContentResDTO{
 				ContentID: pc.Content.ContentID,
 				Title:     pc.Content.Title,
 				Order:     pc.Order,
@@ -76,9 +76,9 @@ func (s *playlistService) GetPlaylistByID(id uint) (dto.DetailPlaylistDTO, error
 		}
 	}
 
-	schedules := []dto.SummaryScheduleDTO{}
+	schedules := []dto.GetSummaryScheduleResDTO{}
 	for _, sch := range playlist.Schedules {
-		schedules = append(schedules, dto.SummaryScheduleDTO{
+		schedules = append(schedules, dto.GetSummaryScheduleResDTO{
 			ScheduleID:    sch.ScheduleID,
 			StartTime:     sch.StartTime,
 			EndTime:       sch.EndTime,
@@ -86,12 +86,10 @@ func (s *playlistService) GetPlaylistByID(id uint) (dto.DetailPlaylistDTO, error
 		})
 	}
 
-	return dto.DetailPlaylistDTO{
+	return dto.GetDetailPlaylistResDTO{
 		PlaylistID:  playlist.PlaylistID,
 		Name:        playlist.Name,
 		Description: playlist.Description,
-		CreatedAt:   playlist.CreatedAt,
-		UpdatedAt:   playlist.UpdatedAt,
 		Airport:     airport,
 		Contents:    contents,
 		Schedules:   schedules,
@@ -99,7 +97,7 @@ func (s *playlistService) GetPlaylistByID(id uint) (dto.DetailPlaylistDTO, error
 }
 
 // POST → Create DTO
-func (s *playlistService) CreatePlaylist(req dto.CreatePlaylistReqDTO) (dto.CreatePlaylistResDTO, error) {
+func (s *playlistService) CreatePlaylist(req dto.CreatePlaylistReqDTO) (dto.GetSummaryPlaylistResDTO, error) {
 	playlist := models.Playlist{
 		AirportID:   req.AirportID,
 		Name:        req.Name,
@@ -107,10 +105,10 @@ func (s *playlistService) CreatePlaylist(req dto.CreatePlaylistReqDTO) (dto.Crea
 	}
 
 	if err := s.repo.Create(&playlist); err != nil {
-		return dto.CreatePlaylistResDTO{}, err
+		return dto.GetSummaryPlaylistResDTO{}, err
 	}
 
-	return dto.CreatePlaylistResDTO{
+	return dto.GetSummaryPlaylistResDTO{
 		PlaylistID:  playlist.PlaylistID,
 		Name:        playlist.Name,
 		Description: playlist.Description,
@@ -120,10 +118,10 @@ func (s *playlistService) CreatePlaylist(req dto.CreatePlaylistReqDTO) (dto.Crea
 }
 
 // PUT/PATCH → Update DTO
-func (s *playlistService) UpdatePlaylist(req dto.UpdatePlaylistReqDTO) (dto.UpdatePlaylistResDTO, error) {
+func (s *playlistService) UpdatePlaylist(req dto.UpdatePlaylistReqDTO) (dto.GetSummaryPlaylistResDTO, error) {
 	playlist, err := s.repo.FindByID(req.PlaylistID)
 	if err != nil {
-		return dto.UpdatePlaylistResDTO{}, err
+		return dto.GetSummaryPlaylistResDTO{}, err
 	}
 
 	if req.AirportID != nil {
@@ -137,10 +135,10 @@ func (s *playlistService) UpdatePlaylist(req dto.UpdatePlaylistReqDTO) (dto.Upda
 	}
 
 	if err := s.repo.Update(playlist); err != nil {
-		return dto.UpdatePlaylistResDTO{}, err
+		return dto.GetSummaryPlaylistResDTO{}, err
 	}
 
-	return dto.UpdatePlaylistResDTO{
+	return dto.GetSummaryPlaylistResDTO{
 		PlaylistID:  playlist.PlaylistID,
 		Name:        playlist.Name,
 		Description: playlist.Description,
@@ -159,7 +157,7 @@ func (s *playlistService) DeletePlaylist(id uint) error {
 // -----------------------------
 
 // POST /playlists/content
-func (s *playlistService) AddContents(req dto.CreatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error) {
+func (s *playlistService) AddContents(req dto.CreatePlaylistContentReqDTO) (dto.GetDetailPlaylistResDTO, error) {
 	var contents []models.PlaylistContent
 	for _, c := range req.Contents {
 		contents = append(contents, models.PlaylistContent{
@@ -169,16 +167,16 @@ func (s *playlistService) AddContents(req dto.CreatePlaylistContentReqDTO) (dto.
 		})
 	}
 	if err := s.repo.AddContents(req.PlaylistID, contents); err != nil {
-		return dto.DetailPlaylistDTO{}, err
+		return dto.GetDetailPlaylistResDTO{}, err
 	}
 	// reload playlist
-	return s.GetPlaylistByID(req.PlaylistID)
+	return s.GetPlaylist(req.PlaylistID)
 }
 
 
 
 // PATCH /playlists/content
-func (s *playlistService) UpdateOrders(req dto.UpdatePlaylistContentReqDTO) (dto.DetailPlaylistDTO, error) {
+func (s *playlistService) UpdateOrders(req dto.UpdatePlaylistContentReqDTO) (dto.GetDetailPlaylistResDTO, error) {
 	var contents []models.PlaylistContent
 	for _, c := range req.Contents {
 		contents = append(contents, models.PlaylistContent{
@@ -188,10 +186,10 @@ func (s *playlistService) UpdateOrders(req dto.UpdatePlaylistContentReqDTO) (dto
 		})
 	}
 	if err := s.repo.UpdateOrders(req.PlaylistID, contents); err != nil {
-		return dto.DetailPlaylistDTO{}, err
+		return dto.GetDetailPlaylistResDTO{}, err
 	}
 	// reload playlist
-	return s.GetPlaylistByID(req.PlaylistID)
+	return s.GetPlaylist(req.PlaylistID)
 }
 
 // DELETE /playlists/content

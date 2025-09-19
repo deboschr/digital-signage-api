@@ -8,8 +8,8 @@ import (
 )
 
 type AirportService interface {
-	GetAllAirports() ([]dto.GetSummaryAirportResDTO, error)
-	GetAirportByID(id uint) (dto.GetDetailAirportResDTO, error)
+	GetAirports() ([]dto.GetSummaryAirportResDTO, error)
+	GetAirport(id uint) (dto.GetDetailAirportResDTO, error)
 	CreateAirport(req dto.CreateAirportReqDTO) (dto.GetDetailAirportResDTO, error)
 	UpdateAirport(req dto.UpdateAirportReqDTO) (dto.GetDetailAirportResDTO, error)
 	DeleteAirport(id uint) error
@@ -23,7 +23,7 @@ func NewAirportService(repo repositories.AirportRepository) AirportService {
 	return &airportService{repo}
 }
 
-func (s *airportService) GetAllAirports() ([]dto.GetSummaryAirportResDTO, error) {
+func (s *airportService) GetAirports() ([]dto.GetSummaryAirportResDTO, error) {
 
 	airports, err := s.repo.FindAll()
 
@@ -45,7 +45,7 @@ func (s *airportService) GetAllAirports() ([]dto.GetSummaryAirportResDTO, error)
 	return res, nil
 }
 
-func (s *airportService) GetAirportByID(id uint) (dto.GetDetailAirportResDTO, error) {
+func (s *airportService) GetAirport(id uint) (dto.GetDetailAirportResDTO, error) {
 
 	airport, err := s.repo.FindByID(id)
 

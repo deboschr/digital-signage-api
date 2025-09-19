@@ -9,8 +9,8 @@ import (
 
 
 type ContentService interface {
-	GetAllContents() ([]dto.GetSummaryContentResDTO, error)
-	GetContentByID(id uint) (dto.GetDetailContentResDTO, error)
+	GetContents() ([]dto.GetSummaryContentResDTO, error)
+	GetContent(id uint) (dto.GetDetailContentResDTO, error)
 	CreateContent(req dto.CreateContentReqDTO) (dto.GetSummaryContentResDTO, error)
 	DeleteContent(id uint) error
 }
@@ -23,7 +23,7 @@ func NewContentService(repo repositories.ContentRepository) ContentService {
 	return &contentService{repo}
 }
 
-func (s *contentService) GetAllContents() ([]dto.GetSummaryContentResDTO, error) {
+func (s *contentService) GetContents() ([]dto.GetSummaryContentResDTO, error) {
 	contents, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (s *contentService) GetAllContents() ([]dto.GetSummaryContentResDTO, error)
 }
 
 // GET by ID → Detail DTO
-func (s *contentService) GetContentByID(id uint) (dto.GetDetailContentResDTO, error) {
+func (s *contentService) GetContent(id uint) (dto.GetDetailContentResDTO, error) {
 	content, err := s.repo.FindByID(id)
 	if err != nil {
 		return dto.GetDetailContentResDTO{}, err
@@ -86,8 +86,6 @@ func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.GetSumm
 		Title:     content.Title,
 		Type:      content.Type,
 		Duration:  content.Duration,
-		CreatedAt: content.CreatedAt,
-		UpdatedAt: content.UpdatedAt,
 	}, nil
 }
 

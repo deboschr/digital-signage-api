@@ -9,8 +9,8 @@ import (
 )
 
 type UserService interface {
-	GetAllUsers() ([]dto.GetSummaryUserResDTO, error)
-	GetUserByID(id uint) (dto.GetDetailUserResDTO, error)
+	GetUsers() ([]dto.GetSummaryUserResDTO, error)
+	GetUser(id uint) (dto.GetDetailUserResDTO, error)
 	CreateUser(req dto.CreateUserReqDTO) (dto.GetSummaryUserResDTO, error)
 	UpdateUser(req dto.UpdateUserReqDTO) (dto.GetSummaryUserResDTO, error)
 	DeleteUser(id uint) error
@@ -25,7 +25,7 @@ func NewUserService(repo repositories.UserRepository) UserService {
 	return &userService{repo}
 }
 
-func (s *userService) GetAllUsers() ([]dto.GetSummaryUserResDTO, error) {
+func (s *userService) GetUsers() ([]dto.GetSummaryUserResDTO, error) {
 
 	users, err := s.repo.FindAll()
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *userService) GetAllUsers() ([]dto.GetSummaryUserResDTO, error) {
 	return res, nil
 }
 
-func (s *userService) GetUserByID(id uint) (dto.GetDetailUserResDTO, error) {
+func (s *userService) GetUser(id uint) (dto.GetDetailUserResDTO, error) {
 
 	user, err := s.repo.FindByID(id)
 	

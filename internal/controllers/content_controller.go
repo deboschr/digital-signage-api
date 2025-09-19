@@ -4,10 +4,10 @@ import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/services"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +22,7 @@ func NewContentController(service services.ContentService) *ContentController {
 
 func (c *ContentController) GetContents(ctx *gin.Context) {
 	
-	contents, err := c.service.GetAllContents()
+	contents, err := c.service.GetContents()
 	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -36,7 +36,7 @@ func (c *ContentController) GetContent(ctx *gin.Context) {
 	
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	
-	content, err := c.service.GetContentByID(uint(id))
+	content, err := c.service.GetContent(uint(id))
 	
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "content not found"})
@@ -49,11 +49,14 @@ func (c *ContentController) GetContent(ctx *gin.Context) {
 func (c *ContentController) CreateContent(ctx *gin.Context) {
 	
 	file, err := ctx.FormFile("file")
+	userVal, _ := ctx.Get("user")
 	
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
 		return
 	}
+
+	userSession := userVal.(dto.GetSummaryUserResDTO)
 
 	// Simpan file ke folder media (STATIC_PATH)
 	mediaDir := os.Getenv("STATIC_PATH")
@@ -83,9 +86,10 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 
 	// Bangun request DTO
 	req := dto.CreateContentReqDTO{
+		AirportID: *userSession.AirportID,
 		Title:    title,
 		Type:     ctype,
-		Duration: duration,
+		Duration: uint16(duration),
 	}
 
 	// Service handle mapping ke model + DB

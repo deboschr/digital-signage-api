@@ -31,9 +31,9 @@ func (c *DeviceController) GetDevices(ctx *gin.Context) {
 
 	// filtering berdasarkan role
 	if user.Role == "management" {
-		devices, err = c.service.GetAllDevices()
+		devices, err = c.service.GetDevices()
 	} else if user.Role == "admin" && user.AirportID != nil {
-		devices, err = c.service.GetDevicesByAirport(*user.AirportID)
+		// devices, err = c.service.GetDevicesByAirport(*user.AirportID)
 	} else {
 		ctx.JSON(http.StatusForbidden, gin.H{"error": "role not allowed"})
 		return
@@ -52,7 +52,7 @@ func (c *DeviceController) GetDevice(ctx *gin.Context) {
 	
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	
-	device, err := c.service.GetDeviceByID(uint(id))
+	device, err := c.service.GetDevice(uint(id))
 	
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "device not found"})

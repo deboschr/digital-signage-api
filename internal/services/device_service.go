@@ -7,9 +7,8 @@ import (
 )
 
 type DeviceService interface {
-	GetAllDevices() ([]dto.GetSummaryDeviceResDTO, error)
-	GetDevicesByAirport(airportID uint)([]dto.GetSummaryDeviceResDTO, error)
-	GetDeviceByID(id uint) (dto.GetDetailDeviceResDTO, error)
+	GetDevices() ([]dto.GetSummaryDeviceResDTO, error)
+	GetDevice(id uint) (dto.GetDetailDeviceResDTO, error)
 	CreateDevice(req dto.CreateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error)
 	UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error)
 	DeleteDevice(id uint) error
@@ -24,7 +23,7 @@ func NewDeviceService(repo repositories.DeviceRepository) DeviceService {
 }
 
 // GET all → Summary DTO
-func (s *deviceService) GetAllDevices() ([]dto.GetSummaryDeviceResDTO, error) {
+func (s *deviceService) GetDevices() ([]dto.GetSummaryDeviceResDTO, error) {
 	devices, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
@@ -62,7 +61,7 @@ func (s *deviceService) GetDevicesByAirport(airportID uint) ([]dto.GetSummaryDev
 
 
 // GET by ID → Detail DTO
-func (s *deviceService) GetDeviceByID(id uint) (dto.GetDetailDeviceResDTO, error) {
+func (s *deviceService) GetDevice(id uint) (dto.GetDetailDeviceResDTO, error) {
 	device, err := s.repo.FindByID(id)
 	if err != nil {
 		return dto.GetDetailDeviceResDTO{}, err

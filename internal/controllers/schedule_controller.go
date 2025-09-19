@@ -19,7 +19,7 @@ func NewScheduleController(service services.ScheduleService) *ScheduleController
 
 func (c *ScheduleController) GetSchedules(ctx *gin.Context) {
 	
-	schedules, err := c.service.GetAllSchedules()
+	schedules, err := c.service.GetSchedules()
 	
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -33,7 +33,7 @@ func (c *ScheduleController) GetSchedule(ctx *gin.Context) {
 	
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	
-	schedule, err := c.service.GetScheduleByID(uint(id))
+	schedule, err := c.service.GetSchedule(uint(id))
 	
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "schedule not found"})

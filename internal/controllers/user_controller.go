@@ -64,23 +64,7 @@ func (c *UserController) SignOut(ctx *gin.Context) {
 
 func (c *UserController) GetUsers(ctx *gin.Context) {
 
-	userVal, _ := ctx.Get("user")
-	userSession := userVal.(dto.GetSummaryUserResDTO)
-
-
-	var users []dto.GetSummaryUserResDTO
-	var err error
-
-	// filtering berdasarkan role
-	if userSession.Role == "management" {
-		users, err = c.service.GetAllUsers()
-	} else if userSession.Role == "admin" && userSession.AirportID != nil {
-		users, err = c.service.GetUsersByAirport(*userSession.AirportID)
-	} else {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "role not allowed"})
-		return
-	}
-
+	users, err := c.service.GetUsers()
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -94,7 +78,7 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 
 	id, _ := strconv.Atoi(ctx.Param("id"))
 
-	user, err := c.service.GetUserByID(uint(id))
+	user, err := c.service.GetUser(uint(id))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 		return

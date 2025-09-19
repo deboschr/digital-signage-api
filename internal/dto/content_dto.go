@@ -17,3 +17,10 @@ type GetDetailContentResDTO struct {
 	Airport   GetSummaryAirportResDTO     `json:"airport"`
 	Playlists []*GetSummaryPlaylistResDTO `json:"playlists"`
 }
+
+type CreateContentReqDTO struct {
+	AirportID uint   `json:"airport_id" binding:"required,gt=0"`
+	Title     string `json:"title" binding:"required,min=3,max=150"`
+	Type      string `json:"type" binding:"required,oneof=image video"`
+	Duration  uint16 `json:"duration" binding:"required,gte=0,lte=3600"`
+}
