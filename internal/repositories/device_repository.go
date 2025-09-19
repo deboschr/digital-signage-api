@@ -9,6 +9,7 @@ import (
 type DeviceRepository interface {
 	FindAll() ([]models.Device, error)
 	FindByID(id uint) (*models.Device, error)
+	FindByAirport(airportID uint)([]models.Device, error)
 	Create(device *models.Device) error
 	Update(device *models.Device) error
 	Delete(id uint) error
@@ -22,7 +23,6 @@ func NewDeviceRepository(db *gorm.DB) DeviceRepository {
 	return &deviceRepository{db}
 }
 
-// Untuk summary list device → preload Airport supaya DTO bisa isi relasi
 func (r *deviceRepository) FindAll() ([]models.Device, error) {
 	var devices []models.Device
 	err := r.db.Preload("Airport").Find(&devices).Error
@@ -38,7 +38,6 @@ func (r *deviceRepository) FindByAirport(airportID uint) ([]models.Device, error
 }
 
 
-// Untuk detail DTO → preload Airport wajib
 func (r *deviceRepository) FindByID(id uint) (*models.Device, error) {
 	var device models.Device
 	err := r.db.Preload("Airport").

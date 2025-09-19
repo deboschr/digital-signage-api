@@ -9,6 +9,7 @@ import (
 type UserRepository interface {
 	FindAll() ([]models.User, error)
 	FindByID(id uint) (*models.User, error)
+	FindByAirport(airportId uint) ([]models.User, error)
 	FindByUsername(username string) (*models.User, error)
 	Create(user *models.User) error
 	Update(user *models.User) error
@@ -45,6 +46,18 @@ func (r *userRepository) FindByID(id uint) (*models.User, error) {
 
 	return &user, nil
 }
+
+func (r *userRepository) FindByAirport(airportId uint) ([]models.User, error) {
+	
+	var users []models.User
+	
+	err := r.db.Preload("Airport").
+		Where("airport_id = ?", airportId).
+		Find(&users).Error
+	
+	return users, err
+}
+
 
 func (r *userRepository) FindByUsername(username string) (*models.User, error) {
 	

@@ -64,8 +64,6 @@ func (s *contentService) GetContentByID(id uint) (dto.GetDetailContentResDTO, er
 		Type:      content.Type,
 		Duration:  content.Duration,
 		URL:       utils.BuildContentURL(content.Title),
-		CreatedAt: content.CreatedAt,
-		UpdatedAt: content.UpdatedAt,
 		Playlists: playlists,
 	}, nil
 }

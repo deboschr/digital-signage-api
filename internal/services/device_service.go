@@ -8,6 +8,7 @@ import (
 
 type DeviceService interface {
 	GetAllDevices() ([]dto.GetSummaryDeviceResDTO, error)
+	GetDevicesByAirport(airportID uint)([]dto.GetSummaryDeviceResDTO, error)
 	GetDeviceByID(id uint) (dto.GetDetailDeviceResDTO, error)
 	CreateDevice(req dto.CreateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error)
 	UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error)
