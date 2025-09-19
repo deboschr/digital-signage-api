@@ -2,6 +2,7 @@ package routes
 
 import (
 	"digital_signage_api/internal/controllers"
+	"digital_signage_api/internal/middlewares"
 	"digital_signage_api/internal/repositories"
 	"digital_signage_api/internal/services"
 
@@ -15,6 +16,7 @@ func ContentRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	controller := controllers.NewContentController(service)
 
 	content := r.Group("/content")
+	content.Use(middlewares.AuthRequired())
 	{
 		content.GET("", controller.GetContents)
 		content.GET("/:id", controller.GetContent)

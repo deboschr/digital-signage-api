@@ -3,9 +3,11 @@ package controllers
 import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/services"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,17 +35,30 @@ func (c *UserController) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: generate JWT nanti
+	// === Simpan user_id ke session ===
+	session := sessions.Default(ctx)
+	userJSON, _ := json.Marshal(user)
+	session.Set("user", string(userJSON))
+	if err := session.Save(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save session"})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "signin success",
-		"user":    user, // bisa SummaryUserDTO atau DetailUserDTO sesuai kebutuhan
+		"user":    user,
 	})
 }
 
+
 func (c *UserController) SignOut(ctx *gin.Context) {
-	// TODO: invalidate JWT/session
+	session := sessions.Default(ctx)
+	session.Clear()
+	session.Save()
+
 	ctx.JSON(http.StatusOK, gin.H{"message": "signout success"})
 }
+
 
 // --- CRUD User ---
 

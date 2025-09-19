@@ -148,6 +148,7 @@ func (s *userService) Authenticate(username, password string) (dto.GetSummaryUse
 
 	return dto.GetSummaryUserResDTO{
 		UserID:   user.UserID,
+		AirportID:   user.AirportID,
 		Username: user.Username,
 		Role:     user.Role,
 	}, nil

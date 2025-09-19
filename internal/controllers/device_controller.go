@@ -18,16 +18,35 @@ func NewDeviceController(service services.DeviceService) *DeviceController {
 }
 
 func (c *DeviceController) GetDevices(ctx *gin.Context) {
-	
-	devices, err := c.service.GetAllDevices()
-	
+	// ambil user dari context
+	userVal, exists := ctx.Get("user")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	user := userVal.(dto.GetSummaryUserResDTO)
+
+	var devices []dto.GetSummaryDeviceResDTO
+	var err error
+
+	// filtering berdasarkan role
+	if user.Role == "management" {
+		devices, err = c.service.GetAllDevices()
+	} else if user.Role == "admin" && user.AirportID != nil {
+		devices, err = c.service.GetDevicesByAirport(*user.AirportID)
+	} else {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "role not allowed"})
+		return
+	}
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	ctx.JSON(http.StatusOK, devices)
 }
+
 
 func (c *DeviceController) GetDevice(ctx *gin.Context) {
 	

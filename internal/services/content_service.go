@@ -9,10 +9,9 @@ import (
 
 
 type ContentService interface {
-	GetAllContents() ([]dto.SummaryContentDTO, error)
-	GetContentByID(id uint) (dto.DetailContentDTO, error)
-	CreateContent(req dto.CreateContentReqDTO) (dto.CreateContentResDTO, error)
-	UpdateContent(req dto.UpdateContentReqDTO) (dto.UpdateContentResDTO, error)
+	GetAllContents() ([]dto.GetSummaryContentResDTO, error)
+	GetContentByID(id uint) (dto.GetDetailContentResDTO, error)
+	CreateContent(req dto.CreateContentReqDTO) (dto.GetSummaryContentResDTO, error)
 	DeleteContent(id uint) error
 }
 
@@ -24,16 +23,15 @@ func NewContentService(repo repositories.ContentRepository) ContentService {
 	return &contentService{repo}
 }
 
-// GET all → Summary DTO
-func (s *contentService) GetAllContents() ([]dto.SummaryContentDTO, error) {
+func (s *contentService) GetAllContents() ([]dto.GetSummaryContentResDTO, error) {
 	contents, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var res []dto.SummaryContentDTO
+	var res []dto.GetSummaryContentResDTO
 	for _, c := range contents {
-		res = append(res, dto.SummaryContentDTO{
+		res = append(res, dto.GetSummaryContentResDTO{
 			ContentID: c.ContentID,
 			Title:     c.Title,
 			Type:      c.Type,
@@ -45,10 +43,10 @@ func (s *contentService) GetAllContents() ([]dto.SummaryContentDTO, error) {
 }
 
 // GET by ID → Detail DTO
-func (s *contentService) GetContentByID(id uint) (dto.DetailContentDTO, error) {
+func (s *contentService) GetContentByID(id uint) (dto.GetDetailContentResDTO, error) {
 	content, err := s.repo.FindByID(id)
 	if err != nil {
-		return dto.DetailContentDTO{}, err
+		return dto.GetDetailContentResDTO{}, err
 	}
 
 	playlists := []dto.SummaryPlaylistDTO{}
@@ -60,7 +58,7 @@ func (s *contentService) GetContentByID(id uint) (dto.DetailContentDTO, error) {
 		})
 	}
 
-	return dto.DetailContentDTO{
+	return dto.GetDetailContentResDTO{
 		ContentID: content.ContentID,
 		Title:     content.Title,
 		Type:      content.Type,
@@ -74,7 +72,7 @@ func (s *contentService) GetContentByID(id uint) (dto.DetailContentDTO, error) {
 
 
 // POST → Create DTO
-func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.CreateContentResDTO, error) {
+func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.GetSummaryContentResDTO, error) {
 	content := models.Content{
 		Title:    req.Title,
 		Type:     req.Type,
@@ -82,10 +80,10 @@ func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.CreateC
 	}
 
 	if err := s.repo.Create(&content); err != nil {
-		return dto.CreateContentResDTO{}, err
+		return dto.GetSummaryContentResDTO{}, err
 	}
 
-	return dto.CreateContentResDTO{
+	return dto.GetSummaryContentResDTO{
 		ContentID: content.ContentID,
 		Title:     content.Title,
 		Type:      content.Type,

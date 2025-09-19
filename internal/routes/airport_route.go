@@ -2,6 +2,7 @@ package routes
 
 import (
 	"digital_signage_api/internal/controllers"
+	"digital_signage_api/internal/middlewares"
 	"digital_signage_api/internal/repositories"
 	"digital_signage_api/internal/services"
 
@@ -15,6 +16,7 @@ func AirportRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	controller := controllers.NewAirportController(service)
 
 	airport := r.Group("/airport")
+	airport.Use(middlewares.AuthRequired())
 	{
 		airport.GET("", controller.GetAirports)
 		airport.GET("/:id", controller.GetAirport)

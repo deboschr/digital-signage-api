@@ -2,6 +2,7 @@ package routes
 
 import (
 	"digital_signage_api/internal/controllers"
+	"digital_signage_api/internal/middlewares"
 	"digital_signage_api/internal/repositories"
 	"digital_signage_api/internal/services"
 
@@ -17,10 +18,11 @@ func UserRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	auth := r.Group("/auth")
 	{
 		auth.POST("/signin", controller.SignIn)
-		auth.DELETE("/signout", controller.SignOut)
+		auth.DELETE("/signout", middlewares.AuthRequired(), controller.SignOut)
 	}
 
 	user := r.Group("/user")
+	user.Use(middlewares.AuthRequired())
 	{
 		user.GET("", controller.GetUsers)
 		user.GET("/:id", controller.GetUser)

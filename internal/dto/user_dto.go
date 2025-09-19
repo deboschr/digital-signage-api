@@ -1,9 +1,10 @@
 package dto
 
 type GetSummaryUserResDTO struct {
-	UserID   uint   `json:"user_id"`
-	Username string `json:"username"`
-	Role     string `json:"role"`
+	UserID    uint   `json:"user_id"`
+	AirportID *uint  `json:"airport_id"`
+	Username  string `json:"username"`
+	Role      string `json:"role"`
 }
 
 type GetDetailUserResDTO struct {

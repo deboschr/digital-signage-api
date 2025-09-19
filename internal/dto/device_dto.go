@@ -4,6 +4,7 @@ type GetSummaryDeviceResDTO struct {
 	DeviceID    uint   `json:"device_id"`
 	Name        string `json:"name"`
 	IsConnected bool   `json:"is_connected"`
+	Airport     string `json:"airport"`
 }
 
 type GetDetailDeviceResDTO struct {

@@ -7,10 +7,10 @@ import (
 )
 
 type DeviceService interface {
-	GetAllDevices() ([]dto.SummaryDeviceDTO, error)
-	GetDeviceByID(id uint) (dto.DetailDeviceDTO, error)
-	CreateDevice(req dto.CreateDeviceReqDTO) (dto.CreateDeviceResDTO, error)
-	UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.UpdateDeviceResDTO, error)
+	GetAllDevices() ([]dto.GetSummaryDeviceResDTO, error)
+	GetDeviceByID(id uint) (dto.GetDetailDeviceResDTO, error)
+	CreateDevice(req dto.CreateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error)
+	UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error)
 	DeleteDevice(id uint) error
 }
 
@@ -23,34 +23,53 @@ func NewDeviceService(repo repositories.DeviceRepository) DeviceService {
 }
 
 // GET all → Summary DTO
-func (s *deviceService) GetAllDevices() ([]dto.SummaryDeviceDTO, error) {
+func (s *deviceService) GetAllDevices() ([]dto.GetSummaryDeviceResDTO, error) {
 	devices, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var res []dto.SummaryDeviceDTO
+	var res []dto.GetSummaryDeviceResDTO
 	for _, d := range devices {
-		res = append(res, dto.SummaryDeviceDTO{
+		res = append(res, dto.GetSummaryDeviceResDTO{
 			DeviceID:  d.DeviceID,
 			Name:      d.Name,
-			IpAddress: d.IpAddress,
-			Status:    d.Status,
+			IsConnected:    d.IsConnected,
+			Airport: d.Airport.Name,
 		})
 	}
 	return res, nil
 }
 
-// GET by ID → Detail DTO
-func (s *deviceService) GetDeviceByID(id uint) (dto.DetailDeviceDTO, error) {
-	device, err := s.repo.FindByID(id)
+func (s *deviceService) GetDevicesByAirport(airportID uint) ([]dto.GetSummaryDeviceResDTO, error) {
+	devices, err := s.repo.FindByAirport(airportID)
 	if err != nil {
-		return dto.DetailDeviceDTO{}, err
+		return nil, err
 	}
 
-	var airport *dto.SummaryAirportDTO
+	var res []dto.GetSummaryDeviceResDTO
+	for _, d := range devices {
+		res = append(res, dto.GetSummaryDeviceResDTO{
+			DeviceID:    d.DeviceID,
+			Name:        d.Name,
+			IsConnected: d.IsConnected,
+			Airport:     d.Airport.Name,
+		})
+	}
+	return res, nil
+}
+
+
+// GET by ID → Detail DTO
+func (s *deviceService) GetDeviceByID(id uint) (dto.GetDetailDeviceResDTO, error) {
+	device, err := s.repo.FindByID(id)
+	if err != nil {
+		return dto.GetDetailDeviceResDTO{}, err
+	}
+
+	var airport *dto.GetSummaryAirportResDTO
 	if device.Airport != nil {
-		airport = &dto.SummaryAirportDTO{
+		airport = &dto.GetSummaryAirportResDTO{
 			AirportID: device.Airport.AirportID,
 			Name:      device.Airport.Name,
 			Code:      device.Airport.Code,
@@ -58,19 +77,15 @@ func (s *deviceService) GetDeviceByID(id uint) (dto.DetailDeviceDTO, error) {
 		}
 	}
 
-	return dto.DetailDeviceDTO{
+	return dto.GetDetailDeviceResDTO{
 		DeviceID:  device.DeviceID,
 		Name:      device.Name,
-		IpAddress: device.IpAddress,
-		Status:    device.Status,
-		CreatedAt: device.CreatedAt,
-		UpdatedAt: device.UpdatedAt,
 		Airport:   airport,
 	}, nil
 }
 
 // POST → Create DTO
-func (s *deviceService) CreateDevice(req dto.CreateDeviceReqDTO) (dto.CreateDeviceResDTO, error) {
+func (s *deviceService) CreateDevice(req dto.CreateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error) {
 	device := models.Device{
 		AirportID: req.AirportID,
 		Name:      req.Name,
@@ -79,10 +94,10 @@ func (s *deviceService) CreateDevice(req dto.CreateDeviceReqDTO) (dto.CreateDevi
 	}
 
 	if err := s.repo.Create(&device); err != nil {
-		return dto.CreateDeviceResDTO{}, err
+		return dto.GetSummaryDeviceResDTO{}, err
 	}
 
-	return dto.CreateDeviceResDTO{
+	return dto.GetSummaryDeviceResDTO{
 		DeviceID:  device.DeviceID,
 		Name:      device.Name,
 		IpAddress: device.IpAddress,
@@ -93,10 +108,10 @@ func (s *deviceService) CreateDevice(req dto.CreateDeviceReqDTO) (dto.CreateDevi
 }
 
 // PUT/PATCH → Update DTO
-func (s *deviceService) UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.UpdateDeviceResDTO, error) {
+func (s *deviceService) UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error) {
 	device, err := s.repo.FindByID(req.DeviceID)
 	if err != nil {
-		return dto.UpdateDeviceResDTO{}, err
+		return dto.GetSummaryDeviceResDTO{}, err
 	}
 
 	if req.AirportID != nil {
@@ -113,10 +128,10 @@ func (s *deviceService) UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.UpdateDevi
 	}
 
 	if err := s.repo.Update(device); err != nil {
-		return dto.UpdateDeviceResDTO{}, err
+		return dto.GetSummaryDeviceResDTO{}, err
 	}
 
-	return dto.UpdateDeviceResDTO{
+	return dto.GetSummaryDeviceResDTO{
 		DeviceID:  device.DeviceID,
 		Name:      device.Name,
 		IpAddress: device.IpAddress,

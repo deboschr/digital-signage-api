@@ -2,6 +2,7 @@ package routes
 
 import (
 	"digital_signage_api/internal/controllers"
+	"digital_signage_api/internal/middlewares"
 	"digital_signage_api/internal/repositories"
 	"digital_signage_api/internal/services"
 
@@ -15,6 +16,7 @@ func PlaylistRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	controller := controllers.NewPlaylistController(service)
 
 	playlist := r.Group("/playlist")
+	playlist.Use(middlewares.AuthRequired())
 	{
 		playlist.GET("", controller.GetPlaylists)
 		playlist.GET("/:id", controller.GetPlaylist)
@@ -25,6 +27,7 @@ func PlaylistRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 
 	content := r.Group("/playlist/content")
+	content.Use(middlewares.AuthRequired())
 	{
 		content.POST("", controller.CreatePlaylistContent)
 		content.PATCH("", controller.UpdatePlaylistContent)

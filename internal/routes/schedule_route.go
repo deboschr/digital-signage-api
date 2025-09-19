@@ -2,6 +2,7 @@ package routes
 
 import (
 	"digital_signage_api/internal/controllers"
+	"digital_signage_api/internal/middlewares"
 	"digital_signage_api/internal/repositories"
 	"digital_signage_api/internal/services"
 
@@ -15,6 +16,7 @@ func ScheduleRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	controller := controllers.NewScheduleController(service)
 
 	schedule := r.Group("/schedule")
+	schedule.Use(middlewares.AuthRequired())
 	{
 		schedule.GET("", controller.GetSchedules)
 		schedule.GET("/:id", controller.GetSchedule)
