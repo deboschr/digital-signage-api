@@ -3,6 +3,7 @@ package controllers
 import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/services"
+	
 	"net/http"
 	"strconv"
 
@@ -110,4 +111,16 @@ func (c *DeviceController) DeleteDevice(ctx *gin.Context) {
 	}
 	
 	ctx.JSON(http.StatusOK, gin.H{"message": "device deleted"})
+}
+
+func (c *DeviceController) ConnectDeviceWS(ctx *gin.Context) {
+	apiKey := ctx.Query("api_key")
+
+	if apiKey == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "api_key required"})
+		return
+	}
+
+	// delegasi ke service untuk validasi & start koneksi
+	c.service.ConnectDeviceWS(ctx.Writer, ctx.Request, apiKey)
 }

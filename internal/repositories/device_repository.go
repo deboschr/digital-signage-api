@@ -9,6 +9,7 @@ import (
 type DeviceRepository interface {
 	FindAll() ([]models.Device, error)
 	FindByID(id uint) (*models.Device, error)
+	FindByApiKey(apiKey string) (*models.Device, error)
 	FindByAirport(airportID uint)([]models.Device, error)
 	Create(device *models.Device) error
 	Update(device *models.Device) error
@@ -37,6 +38,15 @@ func (r *deviceRepository) FindByAirport(airportID uint) ([]models.Device, error
 	return devices, err
 }
 
+func (r *deviceRepository) FindByApiKey(apiKey string) (*models.Device, error) {
+	var device models.Device
+	err := r.db.Preload("Airport").
+		First(&device, "api_key = ?", apiKey).Error
+	if err != nil {
+		return nil, err
+	}
+	return &device, nil
+}
 
 func (r *deviceRepository) FindByID(id uint) (*models.Device, error) {
 	var device models.Device

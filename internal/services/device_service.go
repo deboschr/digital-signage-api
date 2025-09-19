@@ -4,6 +4,8 @@ import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/repositories"
+	"digital_signage_api/internal/ws"
+	"net/http"
 )
 
 type DeviceService interface {
@@ -12,6 +14,7 @@ type DeviceService interface {
 	CreateDevice(req dto.CreateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error)
 	UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.GetSummaryDeviceResDTO, error)
 	DeleteDevice(id uint) error
+	ConnectDeviceWS(w http.ResponseWriter, r *http.Request, apiKey string)
 }
 
 type deviceService struct {
@@ -111,4 +114,16 @@ func (s *deviceService) UpdateDevice(req dto.UpdateDeviceReqDTO) (dto.GetSummary
 
 func (s *deviceService) DeleteDevice(id uint) error {
 	return s.repo.Delete(id)
+}
+
+func (s *deviceService) ConnectDeviceWS(w http.ResponseWriter, r *http.Request, apiKey string) {
+	// validasi apiKey
+	device, err := s.repo.FindByApiKey(apiKey)
+	if err != nil || device == nil {
+		http.Error(w, "invalid api_key", http.StatusUnauthorized)
+		return
+	}
+
+	// upgrade ke WebSocket
+	ws.HandleDeviceConnection(w, r, *device)
 }

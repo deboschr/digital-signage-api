@@ -24,4 +24,6 @@ func DeviceRoutes(r *gin.RouterGroup, db *gorm.DB) {
 		device.PATCH("", controller.UpdateDevice)
 		device.DELETE("/:id", controller.DeleteDevice)
 	}
+
+	r.GET("/device/connect", controller.ConnectDeviceWS)
 }

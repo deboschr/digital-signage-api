@@ -3,20 +3,17 @@ package internal
 import (
 	"digital_signage_api/internal/db"
 	"digital_signage_api/internal/routes"
-
-	// "digital_signage_api/internal/models"
 	"digital_signage_api/internal/config"
-	"digital_signage_api/internal/tcp"
+	// "digital_signage_api/internal/models"
 
-	// "os"
-
+	
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
-
-	"fmt"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"fmt"
+	// "os"
+
 )
 
 func InitApp() {
@@ -72,10 +69,6 @@ func InitApp() {
 		routes.ContentRoutes(api, db.DB)
 		routes.ScheduleRoutes(api, db.DB)
 	}
-
-	// TCP
-	go tcp.StartTCPServer()
-
 
 	// run server
 	if err := r.Run(":8080"); err != nil {
