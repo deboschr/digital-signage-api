@@ -7,7 +7,6 @@ type Content struct {
 	Type      string `gorm:"type:enum('image','video');not null;column:type"`
 	Duration  uint16 `gorm:"column:duration;not null"` // detik, 0–3600
 
-	Playlists       []*Playlist        `gorm:"many2many:playlist_contents;joinForeignKey:ContentID;joinReferences:PlaylistID"`
-	PlaylistContent []*PlaylistContent `gorm:"foreignKey:ContentID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
-	Airport         Airport            `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
+	Playlists []*Playlist `gorm:"many2many:playlist_contents;joinForeignKey:ContentID;joinReferences:PlaylistID"`
+	Airport   Airport     `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE"`
 }
