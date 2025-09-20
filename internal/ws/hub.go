@@ -69,9 +69,11 @@ func SendActiveSchedule(device models.Device) {
 		return
 	}
 
-	now := time.Now()
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+	now := time.Now().In(loc)
 	nowEpochMs := now.UnixMilli()
-	nowTime := now.Format("15:04:05") // current time string
+	nowTime := now.Format("15:04:05")
+
 
 	// Ambil semua schedule milik airport device
 	var schedules []models.Schedule
