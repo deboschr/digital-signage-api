@@ -59,6 +59,34 @@ func (c *UserController) SignOut(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "signout success"})
 }
 
+func (c *UserController) Verify(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+
+	// ambil data user dari session
+	userData := session.Get("user")
+	if userData == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "no active session",
+		})
+		return
+	}
+
+	// parsing JSON ke struct DTO
+	var user dto.GetSummaryUserResDTO
+	if err := json.Unmarshal([]byte(userData.(string)), &user); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid session data",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "session valid",
+		"user":    user,
+	})
+}
+
+
 
 // --- CRUD User ---
 
