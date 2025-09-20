@@ -71,8 +71,6 @@ jobs:
             DB_USER=${{ secrets.DB_USER }}
             DB_PASS=${{ secrets.DB_PASS }}
             DB_NAME=${{ secrets.DB_NAME }}
-            SESSION_SECRET=${{ secrets.SESSION_SECRET }}
-            CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
             EOF
 
             # pull & restart service
