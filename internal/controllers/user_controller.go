@@ -20,16 +20,19 @@ func NewUserController(service services.UserService) *UserController {
 }
 
 func (c *UserController) SignIn(ctx *gin.Context) {
+	
 	var payload struct {
-		Username string `json:"username" binding:"required"`
-		Password string `json:"password" binding:"required"`
+		Username  string `json:"username" binding:"required,min=3,max=100"`
+		Password  string `json:"password" binding:"required,min=6,max=255"`
 	}
+	
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user, err := c.service.Authenticate(payload.Username, payload.Password)
+	
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
