@@ -5,6 +5,8 @@ import (
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/repositories"
 	"digital_signage_api/internal/utils"
+	"os"
+	"path/filepath"
 )
 
 
@@ -105,5 +107,26 @@ func (s *contentService) CreateContent(req dto.CreateContentReqDTO) (dto.GetSumm
 
 
 func (s *contentService) DeleteContent(id uint) error {
-	return s.repo.Delete(id)
+   // Ambil content dari DB
+   content, err := s.repo.FindByID(id)
+   if err != nil {
+      return err
+   }
+
+   // Path file
+   mediaDir := os.Getenv("STATIC_PATH")
+   if mediaDir == "" {
+   	mediaDir = "./media"
+   }
+   
+	filePath := filepath.Join(mediaDir, content.Title)
+
+   // Hapus file fisik (abaikan error kalau file tidak ada)
+   if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
+      return err
+   }
+
+   // Hapus record DB
+   return s.repo.Delete(id)
 }
+

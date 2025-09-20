@@ -81,7 +81,6 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 	}
 
 
-	// Default duration = 0 (foto). Bisa dihitung pakai ffprobe untuk video.
 	duration := 0
 
 	// Bangun request DTO
@@ -92,24 +91,24 @@ func (c *ContentController) CreateContent(ctx *gin.Context) {
 		Duration: uint16(duration),
 	}
 
-	// Service handle mapping ke model + DB
 	res, err := c.service.CreateContent(req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// res = dto.CreateContentResDTO
 	ctx.JSON(http.StatusCreated, res)
 }
 
 
-// DELETE /contents/:id
 func (c *ContentController) DeleteContent(ctx *gin.Context) {
+	
 	id, _ := strconv.Atoi(ctx.Param("id"))
+	
 	if err := c.service.DeleteContent(uint(id)); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	
 	ctx.JSON(http.StatusOK, gin.H{"message": "content deleted"})
 }

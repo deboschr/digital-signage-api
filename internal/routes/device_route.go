@@ -15,7 +15,7 @@ func DeviceRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	service := services.NewDeviceService(repo)
 	controller := controllers.NewDeviceController(service)
 
-	device := r.Group("/device")
+   device := r.Group("/device")
 	device.Use(middlewares.AuthRequired())
 	{
 		device.GET("", controller.GetDevices)
