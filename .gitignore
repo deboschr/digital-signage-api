@@ -2,5 +2,4 @@
 /out/
 *.log
 .env
-contents/
-contents.zip
+nginx.conf
