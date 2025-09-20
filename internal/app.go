@@ -51,7 +51,7 @@ func InitApp() {
 	
 
 	// session store pakai cookie (bisa juga redis/memcached)
-	store := cookie.NewStore([]byte("super-secret-key"))
+	store := cookie.NewStore([]byte("CmS-PiVoDs.CoM"))
 	r.Use(sessions.Sessions("my_session", store))
 
 	cfg := config.Load()

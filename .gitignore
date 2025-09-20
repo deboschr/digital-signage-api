@@ -1,6 +1,5 @@
 /bin/
 /out/
 *.log
-# .env
-contents/
-contents.zip
+.env
+nginx.conf
