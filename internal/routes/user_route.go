@@ -19,7 +19,7 @@ func UserRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	{
 		auth.GET("verify", controller.Verify)
 		auth.POST("signin", controller.SignIn)
-		auth.DELETE("signout", middlewares.AuthRequired(), controller.SignOut)
+		auth.DELETE("signout", controller.SignOut)
 	}
 
 	user := r.Group("/user")

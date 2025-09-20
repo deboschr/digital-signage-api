@@ -4,6 +4,7 @@ import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/repositories"
+	"errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -144,8 +145,9 @@ func (s *userService) Authenticate(username string, password string) (dto.GetSum
 	}
 	
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		return dto.GetSummaryUserResDTO{}, err
+   	return dto.GetSummaryUserResDTO{}, errors.New("invalid credentials")
 	}
+
 
 	return dto.GetSummaryUserResDTO{
 		UserID:   user.UserID,
