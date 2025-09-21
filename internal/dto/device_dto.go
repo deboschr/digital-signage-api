@@ -2,6 +2,7 @@ package dto
 
 type GetSummaryDeviceResDTO struct {
 	DeviceID    uint   `json:"device_id"`
+	AirportID   *uint  `json:"airport_id"`
 	Name        string `json:"name"`
 	ApiKey      string `json:"api_key"`
 	IsConnected bool   `json:"is_connected"`

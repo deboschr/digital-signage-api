@@ -30,10 +30,11 @@ var upgrader = websocket.Upgrader{
 
 // Global maps
 var (
-	deviceConns     = make(map[uint]*DeviceConn)      // DeviceID -> DeviceConn
-	airportDevices  = make(map[uint]map[uint]struct{}) // AirportID -> set of DeviceIDs
+	deviceConns = make(map[uint]*DeviceConn)      // DeviceID -> DeviceConn
+	airportDevices = make(map[uint]map[uint]struct{}) // AirportID -> set of DeviceIDs
 	lastScheduleSent = make(map[uint]uint)             // DeviceID -> ScheduleID
-	mu              sync.Mutex
+	airportTimezones = make(map[uint]string)            // AirportID -> IANA timezone
+	mu sync.Mutex
 )
 
 // helper write aman
@@ -64,6 +65,7 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 		airportDevices[device.AirportID] = make(map[uint]struct{})
 	}
 	airportDevices[device.AirportID][device.DeviceID] = struct{}{}
+	airportTimezones[device.AirportID] = mapToIANATz(device.Airport.Timezone)
 	mu.Unlock()
 
 	fmt.Printf("✅ device %d connected (airport %d)\n", device.DeviceID, device.AirportID)
@@ -146,7 +148,11 @@ func SendActiveSchedule(device models.Device) {
 		return
 	}
 
-	loc, _ := time.LoadLocation("Asia/Jakarta")
+	mu.Lock()
+	locName := airportTimezones[device.AirportID]
+	mu.Unlock()
+	
+	loc, _ := time.LoadLocation(locName)
 	now := time.Now().In(loc)
 	nowEpochMs := now.UnixMilli()
 	nowTime := now.Format("15:04:05")
@@ -252,16 +258,6 @@ func isTimeInRange(nowStr, startStr, endStr string) bool {
 	startT, err2 := time.Parse(layout, strings.TrimSpace(startStr))
 	endT, err3 := time.Parse(layout, strings.TrimSpace(endStr))
 
-	if err1 != nil {
-		fmt.Printf("[DEBUG isTimeInRange] gagal parse nowStr=%q: %v\n", nowStr, err1)
-	}
-	if err2 != nil {
-		fmt.Printf("[DEBUG isTimeInRange] gagal parse startStr=%q: %v\n", startStr, err2)
-	}
-	if err3 != nil {
-		fmt.Printf("[DEBUG isTimeInRange] gagal parse endStr=%q: %v\n", endStr, err3)
-	}
-
 	if err1 != nil || err2 != nil || err3 != nil {
 		return false
 	}
@@ -295,7 +291,11 @@ func RunScheduler() {
 
 		// proses per airport
 		for airportID, deviceIDs := range airports {
-			loc, _ := time.LoadLocation("Asia/Jakarta")
+			mu.Lock()
+			locName := airportTimezones[airportID]
+			mu.Unlock()
+
+			loc, _ := time.LoadLocation(locName)
 			now := time.Now().In(loc)
 			nowEpochMs := now.UnixMilli()
 			nowTime := now.Format("15:04:05")
@@ -317,4 +317,17 @@ func RunScheduler() {
 			}
 		}
 	}
+}
+
+func mapToIANATz(code string) string {
+   switch code {
+   	case "WIB":
+      	return "Asia/Jakarta"
+    	case "WITA":
+      	return "Asia/Makassar"
+    	case "WIT":
+      	return "Asia/Jayapura"
+    	default:
+      	return "Asia/Jakarta"
+   }
 }

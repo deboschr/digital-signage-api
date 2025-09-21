@@ -10,9 +10,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func AirportRoutes(r *gin.RouterGroup, db *gorm.DB) {
-	repo := repositories.NewAirportRepository(db)
-	service := services.NewAirportService(repo)
+func AirportRoutes(r *gin.RouterGroup, database *gorm.DB) {
+	repository := repositories.NewAirportRepository(database)
+	service := services.NewAirportService(repository)
 	controller := controllers.NewAirportController(service)
 
 	airport := r.Group("/airport")

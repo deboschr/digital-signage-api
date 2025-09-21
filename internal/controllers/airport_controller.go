@@ -3,10 +3,12 @@ package controllers
 import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/services"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AirportController struct {
@@ -30,16 +32,18 @@ func (c *AirportController) GetAirports(ctx *gin.Context) {
 }
 
 func (c *AirportController) GetAirport(ctx *gin.Context) {
-
 	id, _ := strconv.Atoi(ctx.Param("id"))
 
 	airport, err := c.service.GetAirport(uint(id))
-
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "airport not found"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "airport not found"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	ctx.JSON(http.StatusOK, airport)
 }
 
@@ -63,9 +67,7 @@ func (c *AirportController) CreateAirport(ctx *gin.Context) {
 }
 
 func (c *AirportController) UpdateAirport(ctx *gin.Context) {
-
 	var req dto.UpdateAirportReqDTO
-
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -73,6 +75,10 @@ func (c *AirportController) UpdateAirport(ctx *gin.Context) {
 
 	res, err := c.service.UpdateAirport(req)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "airport not found"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -81,13 +87,17 @@ func (c *AirportController) UpdateAirport(ctx *gin.Context) {
 }
 
 func (c *AirportController) DeleteAirport(ctx *gin.Context) {
+    id, _ := strconv.Atoi(ctx.Param("id"))
 
-	id, _ := strconv.Atoi(ctx.Param("id"))
-	
-	if err := c.service.DeleteAirport(uint(id)); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	
-	ctx.JSON(http.StatusOK, gin.H{"message": "airport deleted"})
+    err := c.service.DeleteAirport(uint(id))
+    if err != nil {
+        if errors.Is(err, gorm.ErrRecordNotFound) {
+            ctx.JSON(http.StatusNotFound, gin.H{"error": "airport not found"})
+            return
+        }
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    ctx.JSON(http.StatusOK, gin.H{"message": "airport deleted"})
 }

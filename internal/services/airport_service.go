@@ -10,22 +10,22 @@ import (
 type AirportService interface {
 	GetAirports() ([]dto.GetSummaryAirportResDTO, error)
 	GetAirport(id uint) (dto.GetDetailAirportResDTO, error)
-	CreateAirport(req dto.CreateAirportReqDTO) (dto.GetDetailAirportResDTO, error)
-	UpdateAirport(req dto.UpdateAirportReqDTO) (dto.GetDetailAirportResDTO, error)
+	CreateAirport(req dto.CreateAirportReqDTO) (dto.GetSummaryAirportResDTO, error)
+	UpdateAirport(req dto.UpdateAirportReqDTO) (dto.GetSummaryAirportResDTO, error)
 	DeleteAirport(id uint) error
 }
 
 type airportService struct {
-	repo repositories.AirportRepository
+	repository repositories.AirportRepository
 }
 
-func NewAirportService(repo repositories.AirportRepository) AirportService {
-	return &airportService{repo}
+func NewAirportService(repository repositories.AirportRepository) AirportService {
+	return &airportService{repository}
 }
 
 func (s *airportService) GetAirports() ([]dto.GetSummaryAirportResDTO, error) {
 
-	airports, err := s.repo.FindAll()
+	airports, err := s.repository.FindAll()
 
 	if err != nil {
 		return nil, err
@@ -39,6 +39,7 @@ func (s *airportService) GetAirports() ([]dto.GetSummaryAirportResDTO, error) {
 			Name:      a.Name,
 			Code:      a.Code,
 			Address:   a.Address,
+			Timezone:  a.Timezone,
 		})
 	}
 
@@ -47,7 +48,7 @@ func (s *airportService) GetAirports() ([]dto.GetSummaryAirportResDTO, error) {
 
 func (s *airportService) GetAirport(id uint) (dto.GetDetailAirportResDTO, error) {
 
-	airport, err := s.repo.FindByID(id)
+	airport, err := s.repository.FindByID(id)
 
 	if err != nil {
 		return dto.GetDetailAirportResDTO{}, err
@@ -68,9 +69,10 @@ func (s *airportService) GetAirport(id uint) (dto.GetDetailAirportResDTO, error)
 	devices := []*dto.GetSummaryDeviceResDTO{}
 	for _, d := range airport.Devices {
 		device := dto.GetSummaryDeviceResDTO{
-			DeviceID:  d.DeviceID,
-			Name:      d.Name,
-			IsConnected:    d.IsConnected,
+			DeviceID:		d.DeviceID,
+			Name:				d.Name,
+			ApiKey:			d.ApiKey,
+			IsConnected:	d.IsConnected,
 		}
 		devices = append(devices, &device)
 	}
@@ -89,54 +91,71 @@ func (s *airportService) GetAirport(id uint) (dto.GetDetailAirportResDTO, error)
 	for _, c := range airport.Contents {
 		content := dto.GetSummaryContentResDTO{
 			ContentID:  c.ContentID,
-			Title: c.Title,
-			Type:        c.Type,
-			Duration:        c.Duration,
-			URL:        utils.BuildContentURL(c.Title),
+			Title: 		c.Title,
+			Type:			c.Type,
+			Duration:	c.Duration,
+			URL:			utils.BuildContentURL(c.Title),
 		}
 		contents = append(contents, &content)
 	}
 
+	schedules := []*dto.GetSummaryScheduleResDTO{}
+	for _, c := range airport.Schedules {
+		schedule := dto.GetSummaryScheduleResDTO{
+			ScheduleID:		c.ScheduleID,
+			StartDate:		c.StartDate,
+			EndDate:			c.EndDate,
+			StartTime:		c.StartTime,
+			EndTime:			c.EndTime,
+			RepeatPattern:	c.RepeatPattern,
+			IsUrgent:		c.IsUrgent,
+		}
+		schedules = append(schedules, &schedule)
+	}
+
 	return dto.GetDetailAirportResDTO{
 		AirportID: airport.AirportID,
 		Name:      airport.Name,
 		Code:      airport.Code,
 		Address:   airport.Address,
+		Timezone:  airport.Timezone,
 		Users:     users,
 		Devices:   devices,
+		Contents:  contents,
 		Playlists: playlists,
-		Contents: contents,
+		Schedules: schedules,
 	}, nil
 }
 
-func (s *airportService) CreateAirport(req dto.CreateAirportReqDTO) (dto.GetDetailAirportResDTO, error) {
+func (s *airportService) CreateAirport(req dto.CreateAirportReqDTO) (dto.GetSummaryAirportResDTO, error) {
 	
 	airport := models.Airport{
-		Name:    req.Name,
-		Code:    req.Code,
-		Address: req.Address,
+		Name:			req.Name,
+		Code:			req.Code,
+		Address:		req.Address,
+		Timezone:	req.Timezone,
 	}
 
-	if err := s.repo.Create(&airport); err != nil {
-		return dto.GetDetailAirportResDTO{}, err
+	if err := s.repository.Create(&airport); err != nil {
+		return dto.GetSummaryAirportResDTO{}, err
 	}
 
-	return dto.GetDetailAirportResDTO{
-		AirportID: airport.AirportID,
-		Name:      airport.Name,
-		Code:      airport.Code,
-		Address:   airport.Address,
+	return dto.GetSummaryAirportResDTO{
+		AirportID:	airport.AirportID,
+		Name:			airport.Name,
+		Code:			airport.Code,
+		Address:		airport.Address,
+		Timezone:	airport.Timezone,
 	}, nil
 }
 
-func (s *airportService) UpdateAirport(req dto.UpdateAirportReqDTO) (dto.GetDetailAirportResDTO, error) {
-	// ambil data lama
-	airport, err := s.repo.FindByID(req.AirportID)
+func (s *airportService) UpdateAirport(req dto.UpdateAirportReqDTO) (dto.GetSummaryAirportResDTO, error) {
+	
+	airport, err := s.repository.FindByID(req.AirportID)
 	if err != nil {
-		return dto.GetDetailAirportResDTO{}, err
+		return dto.GetSummaryAirportResDTO{}, err
 	}
 
-	// update field kalau ada
 	if req.Name != nil {
 		airport.Name = *req.Name
 	}
@@ -144,21 +163,25 @@ func (s *airportService) UpdateAirport(req dto.UpdateAirportReqDTO) (dto.GetDeta
 		airport.Code = *req.Code
 	}
 	if req.Address != nil {
-		airport.Address = req.Address
+		airport.Address = *req.Address
+	}
+	if req.Timezone != nil {
+		airport.Timezone = *req.Timezone
 	}
 
-	if err := s.repo.Update(airport); err != nil {
-		return dto.GetDetailAirportResDTO{}, err
+	if err := s.repository.Update(airport); err != nil {
+		return dto.GetSummaryAirportResDTO{}, err
 	}
 
-	return dto.GetDetailAirportResDTO{
-		AirportID: airport.AirportID,
-		Name:      airport.Name,
-		Code:      airport.Code,
-		Address:   airport.Address,
+	return dto.GetSummaryAirportResDTO{
+		AirportID:	airport.AirportID,
+		Name:			airport.Name,
+		Code:			airport.Code,
+		Address:		airport.Address,
+		Timezone:	airport.Timezone,
 	}, nil
 }
 
 func (s *airportService) DeleteAirport(id uint) error {
-	return s.repo.Delete(id)
+	return s.repository.Delete(id)
 }

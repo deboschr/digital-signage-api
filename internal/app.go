@@ -4,12 +4,11 @@ import (
 	"digital_signage_api/internal/config"
 	"digital_signage_api/internal/db"
 	"digital_signage_api/internal/routes"
-
 	// "digital_signage_api/internal/models"
 
-	// "github.com/gin-contrib/cors"
-	// "github.com/gin-contrib/sessions"
-	// "github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	// "os"
 )
@@ -38,13 +37,13 @@ func InitApp() {
 
 	
 	// setup CORS & Session dari config (production)
-	config.SetupCORS(r)
-	config.SetupSession(r)
+	// config.SetupCORS(r)
+	// config.SetupSession(r)
 	
 	// setup CORS & Session dari config (development)
-	// r.Use(cors.Default())
-	// store := cookie.NewStore([]byte("super-secret-key"))
-	// r.Use(sessions.Sessions("my_session", store))
+	r.Use(cors.Default())
+	store := cookie.NewStore([]byte("super-secret-key"))
+	r.Use(sessions.Sessions("my_session", store))
 
 	cfg := config.Load()
 	r.Static("/media", cfg.StaticPath)
