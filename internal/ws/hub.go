@@ -16,17 +16,37 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// DeviceConn membungkus websocket.Conn dengan mutex agar aman untuk concurrent write
+type DeviceConn struct {
+	Conn *websocket.Conn
+	Mu   sync.Mutex
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true // TODO: perketat origin
 	},
 }
 
-var deviceConns = make(map[uint]*websocket.Conn) // DeviceID -> Conn
+// DeviceID -> DeviceConn
+var deviceConns = make(map[uint]*DeviceConn)
 var mu sync.Mutex
 
 // cache terakhir schedule yang dikirim -> biar tidak spam kirim schedule sama
 var lastScheduleSent = make(map[uint]uint) // DeviceID -> ScheduleID
+
+// helper write aman
+func safeWrite(dc *DeviceConn, messageType int, data []byte) error {
+	dc.Mu.Lock()
+	defer dc.Mu.Unlock()
+	return dc.Conn.WriteMessage(messageType, data)
+}
+
+func safeWriteControl(dc *DeviceConn, messageType int, data []byte, deadline time.Time) error {
+	dc.Mu.Lock()
+	defer dc.Mu.Unlock()
+	return dc.Conn.WriteControl(messageType, data, deadline)
+}
 
 func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device models.Device) {
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -34,9 +54,10 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 		fmt.Println("❌ upgrade error:", err)
 		return
 	}
+	dc := &DeviceConn{Conn: conn}
 
 	mu.Lock()
-	deviceConns[device.DeviceID] = conn
+	deviceConns[device.DeviceID] = dc
 	mu.Unlock()
 
 	fmt.Printf("✅ device %d connected (airport %d)\n", device.DeviceID, device.AirportID)
@@ -66,7 +87,7 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 			if !ok {
 				return // device sudah disconnect
 			}
-			if err := conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(5*time.Second)); err != nil {
+			if err := safeWriteControl(dc, websocket.PingMessage, nil, time.Now().Add(5*time.Second)); err != nil {
 				fmt.Printf("⚠️ failed to send ping to device %d: %v\n", device.DeviceID, err)
 				return
 			}
@@ -103,10 +124,9 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 	fmt.Printf("❌ device %d disconnected\n", device.DeviceID)
 }
 
-
 func SendActiveSchedule(device models.Device) {
 	mu.Lock()
-	conn, ok := deviceConns[device.DeviceID]
+	dc, ok := deviceConns[device.DeviceID]
 	mu.Unlock()
 
 	if !ok {
@@ -119,7 +139,6 @@ func SendActiveSchedule(device models.Device) {
 	nowEpochMs := now.UnixMilli()
 	nowTime := now.Format("15:04:05")
 
-
 	// Ambil semua schedule milik airport device
 	var schedules []models.Schedule
 	err := db.DB.
@@ -128,7 +147,7 @@ func SendActiveSchedule(device models.Device) {
 		Find(&schedules).Error
 	if err != nil || len(schedules) == 0 {
 		msg := `{"message":"no active schedule"}`
-		conn.WriteMessage(websocket.TextMessage, []byte(msg))
+		safeWrite(dc, websocket.TextMessage, []byte(msg))
 		return
 	}
 
@@ -154,7 +173,7 @@ func SendActiveSchedule(device models.Device) {
 
 	if active == nil {
 		msg := `{"message":"no active schedule"}`
-		conn.WriteMessage(websocket.TextMessage, []byte(msg))
+		safeWrite(dc, websocket.TextMessage, []byte(msg))
 		return
 	}
 
@@ -198,7 +217,7 @@ func SendActiveSchedule(device models.Device) {
 
 	data, _ := json.Marshal(payload)
 	fmt.Println("Sending to device:", string(data))
-	conn.WriteMessage(websocket.TextMessage, data)
+	safeWrite(dc, websocket.TextMessage, data)
 
 	mu.Lock()
 	lastScheduleSent[device.DeviceID] = active.ScheduleID
@@ -243,7 +262,6 @@ func isTimeInRange(nowStr, startStr, endStr string) bool {
 	}
 }
 
-
 // RunScheduler jalan di background setiap 1 menit
 func RunScheduler() {
 	ticker := time.NewTicker(1 * time.Minute)
@@ -254,9 +272,9 @@ func RunScheduler() {
 
 		mu.Lock()
 		// copy biar aman dipakai di loop
-		conns := make(map[uint]*websocket.Conn)
-		for id, conn := range deviceConns {
-			conns[id] = conn
+		conns := make(map[uint]*DeviceConn)
+		for id, dc := range deviceConns {
+			conns[id] = dc
 		}
 		mu.Unlock()
 
