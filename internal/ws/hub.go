@@ -28,12 +28,13 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// DeviceID -> DeviceConn
-var deviceConns = make(map[uint]*DeviceConn)
-var mu sync.Mutex
-
-// cache terakhir schedule yang dikirim -> biar tidak spam kirim schedule sama
-var lastScheduleSent = make(map[uint]uint) // DeviceID -> ScheduleID
+// Global maps
+var (
+	deviceConns     = make(map[uint]*DeviceConn)      // DeviceID -> DeviceConn
+	airportDevices  = make(map[uint]map[uint]struct{}) // AirportID -> set of DeviceIDs
+	lastScheduleSent = make(map[uint]uint)             // DeviceID -> ScheduleID
+	mu              sync.Mutex
+)
 
 // helper write aman
 func safeWrite(dc *DeviceConn, messageType int, data []byte) error {
@@ -56,8 +57,13 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 	}
 	dc := &DeviceConn{Conn: conn}
 
+	// simpan device
 	mu.Lock()
 	deviceConns[device.DeviceID] = dc
+	if airportDevices[device.AirportID] == nil {
+		airportDevices[device.AirportID] = make(map[uint]struct{})
+	}
+	airportDevices[device.AirportID][device.DeviceID] = struct{}{}
 	mu.Unlock()
 
 	fmt.Printf("✅ device %d connected (airport %d)\n", device.DeviceID, device.AirportID)
@@ -118,17 +124,23 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 	// cleanup
 	mu.Lock()
 	delete(deviceConns, device.DeviceID)
+	if set, ok := airportDevices[device.AirportID]; ok {
+		delete(set, device.DeviceID)
+		if len(set) == 0 {
+			delete(airportDevices, device.AirportID)
+		}
+	}
 	delete(lastScheduleSent, device.DeviceID)
 	mu.Unlock()
 	conn.Close()
 	fmt.Printf("❌ device %d disconnected\n", device.DeviceID)
 }
 
+// Kirim schedule hanya ke satu device (dipanggil saat connect)
 func SendActiveSchedule(device models.Device) {
 	mu.Lock()
 	dc, ok := deviceConns[device.DeviceID]
 	mu.Unlock()
-
 	if !ok {
 		fmt.Printf("⚠️ device %d not connected\n", device.DeviceID)
 		return
@@ -151,24 +163,34 @@ func SendActiveSchedule(device models.Device) {
 		return
 	}
 
-	var active *models.Schedule
+	active := pickActiveSchedule(schedules, nowTime)
+	sendScheduleToDevice(device.DeviceID, active)
+}
 
-	// 1. Cari urgent schedule aktif
+// pilih schedule aktif dari daftar
+func pickActiveSchedule(schedules []models.Schedule, nowTime string) *models.Schedule {
+	// 1. Cari urgent
 	for _, sch := range schedules {
 		if sch.IsUrgent && isTimeInRange(nowTime, sch.StartTime, sch.EndTime) {
-			active = &sch
-			break
+			return &sch
 		}
 	}
-
-	// 2. Kalau tidak ada urgent → cari schedule normal yang aktif
-	if active == nil {
-		for _, sch := range schedules {
-			if isTimeInRange(nowTime, sch.StartTime, sch.EndTime) {
-				active = &sch
-				break
-			}
+	// 2. Cari normal
+	for _, sch := range schedules {
+		if isTimeInRange(nowTime, sch.StartTime, sch.EndTime) {
+			return &sch
 		}
+	}
+	return nil
+}
+
+// kirim schedule ke device tertentu
+func sendScheduleToDevice(deviceID uint, active *models.Schedule) {
+	mu.Lock()
+	dc, ok := deviceConns[deviceID]
+	mu.Unlock()
+	if !ok {
+		return
 	}
 
 	if active == nil {
@@ -177,28 +199,26 @@ func SendActiveSchedule(device models.Device) {
 		return
 	}
 
-	// cek apakah schedule sama dengan sebelumnya
+	// cek apakah sama dengan last
 	mu.Lock()
-	lastSent := lastScheduleSent[device.DeviceID]
+	lastSent := lastScheduleSent[deviceID]
 	mu.Unlock()
 	if lastSent == active.ScheduleID {
-		// tidak kirim ulang kalau belum berubah
 		return
 	}
 
-	// Build payload ActiveScheduleRes
+	// build payload
 	playlist := active.Playlist
 	payload := dto.ActiveScheduleRes{
 		ScheduleID: active.ScheduleID,
 		IsUrgent:   active.IsUrgent,
 		StartDate:  active.StartDate,
 		EndDate:    active.EndDate,
-		StartTime:  active.StartTime, // langsung string "HH:MM:SS"
+		StartTime:  active.StartTime,
 		EndTime:    active.EndTime,
 		PlaylistID: playlist.PlaylistID,
 		Name:       playlist.Name,
 	}
-
 	for _, pc := range playlist.PlaylistContent {
 		if pc.Content != nil {
 			payload.Contents = append(payload.Contents, struct {
@@ -216,15 +236,15 @@ func SendActiveSchedule(device models.Device) {
 	}
 
 	data, _ := json.Marshal(payload)
-	fmt.Println("Sending to device:", string(data))
+	fmt.Println("Sending to device:", deviceID, string(data))
 	safeWrite(dc, websocket.TextMessage, data)
 
 	mu.Lock()
-	lastScheduleSent[device.DeviceID] = active.ScheduleID
+	lastScheduleSent[deviceID] = active.ScheduleID
 	mu.Unlock()
 }
 
-// Helper: cek apakah nowTime ada di range StartTime–EndTime
+// cek apakah nowTime ada di range StartTime–EndTime
 func isTimeInRange(nowStr, startStr, endStr string) bool {
 	layout := "15:04:05"
 
@@ -246,19 +266,12 @@ func isTimeInRange(nowStr, startStr, endStr string) bool {
 		return false
 	}
 
-	fmt.Printf("[DEBUG isTimeInRange] now=%s, start=%s, end=%s\n",
-		nowT.Format(layout), startT.Format(layout), endT.Format(layout))
-
 	if startT.Before(endT) {
 		// normal range (ex: 08:00–17:00)
-		inRange := !nowT.Before(startT) && !nowT.After(endT)
-		fmt.Printf("[DEBUG isTimeInRange] normal range → %v\n", inRange)
-		return inRange
+		return !nowT.Before(startT) && !nowT.After(endT)
 	} else {
 		// lewat tengah malam (ex: 21:00–03:00)
-		inRange := !nowT.Before(startT) || !nowT.After(endT)
-		fmt.Printf("[DEBUG isTimeInRange] cross-midnight range → %v\n", inRange)
-		return inRange
+		return !nowT.Before(startT) || !nowT.After(endT)
 	}
 }
 
@@ -270,24 +283,38 @@ func RunScheduler() {
 	for {
 		<-ticker.C
 
+		// snapshot airports + devices
 		mu.Lock()
-		// copy biar aman dipakai di loop
-		conns := make(map[uint]*DeviceConn)
-		for id, dc := range deviceConns {
-			conns[id] = dc
+		airports := make(map[uint][]uint) // AirportID -> []DeviceID
+		for airportID, set := range airportDevices {
+			for deviceID := range set {
+				airports[airportID] = append(airports[airportID], deviceID)
+			}
 		}
 		mu.Unlock()
 
-		for deviceID := range conns {
-			// ambil device dari DB biar tahu airport_id
-			var device models.Device
-			if err := db.DB.Preload("Airport").First(&device, deviceID).Error; err != nil {
-				fmt.Println("⚠️ gagal ambil device:", err)
+		// proses per airport
+		for airportID, deviceIDs := range airports {
+			loc, _ := time.LoadLocation("Asia/Jakarta")
+			now := time.Now().In(loc)
+			nowEpochMs := now.UnixMilli()
+			nowTime := now.Format("15:04:05")
+
+			// query sekali saja untuk airport ini
+			var schedules []models.Schedule
+			err := db.DB.
+				Preload("Playlist.PlaylistContent.Content").
+				Where("airport_id = ? AND start_date <= ? AND end_date >= ?", airportID, nowEpochMs, nowEpochMs).
+				Find(&schedules).Error
+			if err != nil {
+				fmt.Printf("⚠️ gagal ambil schedule airport %d: %v\n", airportID, err)
 				continue
 			}
 
-			// kirim schedule aktif
-			SendActiveSchedule(device)
+			active := pickActiveSchedule(schedules, nowTime)
+			for _, deviceID := range deviceIDs {
+				sendScheduleToDevice(deviceID, active)
+			}
 		}
 	}
 }
