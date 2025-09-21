@@ -7,6 +7,7 @@ import (
 	"digital_signage_api/internal/utils"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -43,21 +44,43 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 	// kirim active schedule saat connect
 	SendActiveSchedule(device)
 
-	// set deadline & pong handler
+	// set deadline awal (60 detik)
 	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+
+	// kalau terima Pong → perpanjang deadline
 	conn.SetPongHandler(func(appData string) error {
-   	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-   	return nil
+		fmt.Println("📨 received pong from client")
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		return nil
 	})
 
-	// listen until disconnect
+	// kalau terima Ping → balas Pong
+	conn.SetPingHandler(func(appData string) error {
+		fmt.Println("📡 received ping from client")
+		conn.WriteControl(websocket.PongMessage, []byte(appData), time.Now().Add(time.Second))
+		return nil
+	})
+
+	// listen sampai disconnect
 	for {
-		_, _, err := conn.ReadMessage()
+		// pakai NextReader biar control frame (Ping/Pong/Close) ditangani benar
+		mt, r, err := conn.NextReader()
 		if err != nil {
 			break
 		}
+
+		if mt == websocket.TextMessage {
+			// baca isi pesan text (kalau ada)
+			var sb strings.Builder
+			_, _ = io.Copy(&sb, r)
+			msg := sb.String()
+			if strings.TrimSpace(msg) != "" {
+				fmt.Printf("💬 text message from device %d: %s\n", device.DeviceID, msg)
+			}
+		}
 	}
 
+	// cleanup
 	mu.Lock()
 	delete(deviceConns, device.DeviceID)
 	delete(lastScheduleSent, device.DeviceID)
@@ -65,6 +88,7 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 	conn.Close()
 	fmt.Printf("❌ device %d disconnected\n", device.DeviceID)
 }
+
 
 func SendActiveSchedule(device models.Device) {
 	mu.Lock()
