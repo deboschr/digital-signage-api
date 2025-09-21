@@ -1,5 +1,5 @@
 /bin/
 /out/
 *.log
-.env
 nginx.conf
+.env

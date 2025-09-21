@@ -1,19 +1,17 @@
 package internal
 
 import (
+	"digital_signage_api/internal/config"
 	"digital_signage_api/internal/db"
 	"digital_signage_api/internal/routes"
-	"digital_signage_api/internal/config"
+
 	// "digital_signage_api/internal/models"
 
-	
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-contrib/cors"
+	// "github.com/gin-contrib/cors"
+	// "github.com/gin-contrib/sessions"
+	// "github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"fmt"
 	// "os"
-
 )
 
 func InitApp() {
@@ -38,24 +36,17 @@ func InitApp() {
 	// init Gin
 	r := gin.Default()
 
-	// aktifkan CORS
-	r.Use(cors.Default())	// aktifkan CORS untuk semua origin (development only)
-	// r.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     []string{"http://localhost:5173"}, // asal frontend Vite
-   //  	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-   //  	AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-   //  	ExposeHeaders:    []string{"Content-Length"},
-   //  	AllowCredentials: true,
-	// }))
 	
+	// setup CORS & Session dari config (production)
+	config.SetupCORS(r)
+	config.SetupSession(r)
 	
-
-	// session store pakai cookie (bisa juga redis/memcached)
-	store := cookie.NewStore([]byte("CmS-PiVoDs.CoM"))
-	r.Use(sessions.Sessions("my_session", store))
+	// setup CORS & Session dari config (development)
+	// r.Use(cors.Default())
+	// store := cookie.NewStore([]byte("super-secret-key"))
+	// r.Use(sessions.Sessions("my_session", store))
 
 	cfg := config.Load()
-	fmt.Println("Serving media from:", cfg.StaticPath)
 	r.Static("/media", cfg.StaticPath)
 
 

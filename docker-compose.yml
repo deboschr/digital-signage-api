@@ -6,7 +6,6 @@ services:
       db:
         condition: service_healthy   # tunggu sampai MySQL sehat
     ports:
-      # API HTTP hanya untuk nginx reverse proxy
       - "127.0.0.1:8080:8080"
     env_file:
       - .env

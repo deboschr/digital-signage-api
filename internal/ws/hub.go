@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -68,9 +69,11 @@ func SendActiveSchedule(device models.Device) {
 		return
 	}
 
-	now := time.Now()
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+	now := time.Now().In(loc)
 	nowEpochMs := now.UnixMilli()
-	nowTime := now.Format("15:04:05") // current time string
+	nowTime := now.Format("15:04:05")
+
 
 	// Ambil semua schedule milik airport device
 	var schedules []models.Schedule
@@ -161,22 +164,40 @@ func SendActiveSchedule(device models.Device) {
 func isTimeInRange(nowStr, startStr, endStr string) bool {
 	layout := "15:04:05"
 
-	nowT, err1 := time.Parse(layout, nowStr)
-	startT, err2 := time.Parse(layout, startStr)
-	endT, err3 := time.Parse(layout, endStr)
+	nowT, err1 := time.Parse(layout, strings.TrimSpace(nowStr))
+	startT, err2 := time.Parse(layout, strings.TrimSpace(startStr))
+	endT, err3 := time.Parse(layout, strings.TrimSpace(endStr))
+
+	if err1 != nil {
+		fmt.Printf("[DEBUG isTimeInRange] gagal parse nowStr=%q: %v\n", nowStr, err1)
+	}
+	if err2 != nil {
+		fmt.Printf("[DEBUG isTimeInRange] gagal parse startStr=%q: %v\n", startStr, err2)
+	}
+	if err3 != nil {
+		fmt.Printf("[DEBUG isTimeInRange] gagal parse endStr=%q: %v\n", endStr, err3)
+	}
 
 	if err1 != nil || err2 != nil || err3 != nil {
 		return false
 	}
 
+	fmt.Printf("[DEBUG isTimeInRange] now=%s, start=%s, end=%s\n",
+		nowT.Format(layout), startT.Format(layout), endT.Format(layout))
+
 	if startT.Before(endT) {
 		// normal range (ex: 08:00–17:00)
-		return !nowT.Before(startT) && !nowT.After(endT)
+		inRange := !nowT.Before(startT) && !nowT.After(endT)
+		fmt.Printf("[DEBUG isTimeInRange] normal range → %v\n", inRange)
+		return inRange
 	} else {
 		// lewat tengah malam (ex: 21:00–03:00)
-		return !nowT.Before(startT) || !nowT.After(endT)
+		inRange := !nowT.Before(startT) || !nowT.After(endT)
+		fmt.Printf("[DEBUG isTimeInRange] cross-midnight range → %v\n", inRange)
+		return inRange
 	}
 }
+
 
 // RunScheduler jalan di background setiap 1 menit
 func RunScheduler() {

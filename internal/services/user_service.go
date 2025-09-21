@@ -4,6 +4,7 @@ import (
 	"digital_signage_api/internal/dto"
 	"digital_signage_api/internal/models"
 	"digital_signage_api/internal/repositories"
+	"errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -14,7 +15,7 @@ type UserService interface {
 	CreateUser(req dto.CreateUserReqDTO) (dto.GetSummaryUserResDTO, error)
 	UpdateUser(req dto.UpdateUserReqDTO) (dto.GetSummaryUserResDTO, error)
 	DeleteUser(id uint) error
-	Authenticate(username, password string) (dto.GetSummaryUserResDTO, error)
+	Authenticate(username string, password string) (dto.GetSummaryUserResDTO, error)
 }
 
 type userService struct {
@@ -135,16 +136,18 @@ func (s *userService) DeleteUser(id uint) error {
 }
 
 // AUTH
-func (s *userService) Authenticate(username, password string) (dto.GetSummaryUserResDTO, error) {
+func (s *userService) Authenticate(username string, password string) (dto.GetSummaryUserResDTO, error) {
 	
 	user, err := s.repo.FindByUsername(username)
 	
 	if err != nil {
 		return dto.GetSummaryUserResDTO{}, err
 	}
+	
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		return dto.GetSummaryUserResDTO{}, err
+   	return dto.GetSummaryUserResDTO{}, errors.New("invalid credentials")
 	}
+
 
 	return dto.GetSummaryUserResDTO{
 		UserID:   user.UserID,
