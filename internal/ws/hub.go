@@ -63,22 +63,25 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 
 	// listen sampai disconnect
 	for {
-		// pakai NextReader biar control frame (Ping/Pong/Close) ditangani benar
-		mt, r, err := conn.NextReader()
-		if err != nil {
-			break
-		}
+    	mt, r, err := conn.NextReader()
+    	if err != nil {
+        	fmt.Printf("❌ device %d read error: %v\n", device.DeviceID, err)
+        	break
+    	}
 
-		if mt == websocket.TextMessage {
-			// baca isi pesan text (kalau ada)
-			var sb strings.Builder
-			_, _ = io.Copy(&sb, r)
-			msg := sb.String()
-			if strings.TrimSpace(msg) != "" {
-				fmt.Printf("💬 text message from device %d: %s\n", device.DeviceID, msg)
-			}
-		}
+    	// reset deadline setiap ada pesan
+    	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+
+    	if mt == websocket.TextMessage {
+        	var sb strings.Builder
+        	_, _ = io.Copy(&sb, r)
+        	msg := sb.String()
+        	if strings.TrimSpace(msg) != "" {
+         	fmt.Printf("💬 text message from device %d: %s\n", device.DeviceID, msg)
+        	}
+    	}
 	}
+
 
 	// cleanup
 	mu.Lock()
