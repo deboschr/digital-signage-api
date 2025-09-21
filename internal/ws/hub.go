@@ -43,6 +43,13 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 	// kirim active schedule saat connect
 	SendActiveSchedule(device)
 
+	// set deadline & pong handler
+	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	conn.SetPongHandler(func(appData string) error {
+   	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+   	return nil
+	})
+
 	// listen until disconnect
 	for {
 		_, _, err := conn.ReadMessage()
