@@ -44,44 +44,55 @@ func HandleDeviceConnection(w http.ResponseWriter, r *http.Request, device model
 	// kirim active schedule saat connect
 	SendActiveSchedule(device)
 
-	// set deadline awal (60 detik)
+	// set deadline awal
 	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
 	// kalau terima Pong → perpanjang deadline
 	conn.SetPongHandler(func(appData string) error {
-		fmt.Println("📨 received pong from client")
+		fmt.Printf("📨 received pong from device %d\n", device.DeviceID)
 		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		return nil
 	})
 
-	// kalau terima Ping → balas Pong
-	conn.SetPingHandler(func(appData string) error {
-		fmt.Println("📡 received ping from client")
-		conn.WriteControl(websocket.PongMessage, []byte(appData), time.Now().Add(time.Second))
-		return nil
-	})
+	// goroutine ping loop
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for {
+			<-ticker.C
+			mu.Lock()
+			_, ok := deviceConns[device.DeviceID]
+			mu.Unlock()
+			if !ok {
+				return // device sudah disconnect
+			}
+			if err := conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(5*time.Second)); err != nil {
+				fmt.Printf("⚠️ failed to send ping to device %d: %v\n", device.DeviceID, err)
+				return
+			}
+			fmt.Printf("📡 sent ping to device %d\n", device.DeviceID)
+		}
+	}()
 
 	// listen sampai disconnect
 	for {
-    	mt, r, err := conn.NextReader()
-    	if err != nil {
-        	fmt.Printf("❌ device %d read error: %v\n", device.DeviceID, err)
-        	break
-    	}
+		mt, r, err := conn.NextReader()
+		if err != nil {
+			fmt.Printf("❌ device %d read error: %v\n", device.DeviceID, err)
+			break
+		}
+		// reset deadline setiap pesan apapun
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
-    	// reset deadline setiap ada pesan
-    	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-
-    	if mt == websocket.TextMessage {
-        	var sb strings.Builder
-        	_, _ = io.Copy(&sb, r)
-        	msg := sb.String()
-        	if strings.TrimSpace(msg) != "" {
-         	fmt.Printf("💬 text message from device %d: %s\n", device.DeviceID, msg)
-        	}
-    	}
+		if mt == websocket.TextMessage {
+			var sb strings.Builder
+			_, _ = io.Copy(&sb, r)
+			msg := sb.String()
+			if strings.TrimSpace(msg) != "" {
+				fmt.Printf("💬 text message from device %d: %s\n", device.DeviceID, msg)
+			}
+		}
 	}
-
 
 	// cleanup
 	mu.Lock()
