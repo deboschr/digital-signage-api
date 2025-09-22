@@ -36,8 +36,6 @@ func (s *scheduleService) GetSchedules() ([]dto.GetSummaryScheduleResDTO, error)
 		res = append(res, dto.GetSummaryScheduleResDTO{
 			ScheduleID:    sch.ScheduleID,
 			Playlist:     sch.Playlist.Name,
-			StartDate:     sch.StartDate,
-			EndDate:     sch.EndDate,
 			StartTime:     sch.StartTime,
 			EndTime:       sch.EndTime,
 			RepeatPattern: sch.RepeatPattern,
@@ -72,8 +70,6 @@ func (s *scheduleService) GetSchedule(id uint) (dto.GetDetailScheduleResDTO, err
 
 	return dto.GetDetailScheduleResDTO{
 		ScheduleID:    schedule.ScheduleID,
-		StartDate:     schedule.StartDate,
-		EndDate:     schedule.EndDate,
 		StartTime: schedule.StartTime,
 		EndTime:   schedule.EndTime,
 		RepeatPattern: schedule.RepeatPattern,

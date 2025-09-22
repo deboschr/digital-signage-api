@@ -5,6 +5,6 @@ type PlaylistContent struct {
 	ContentID  uint `gorm:"primaryKey;column:content_id"`
 	Order      int  `gorm:"column:order"`
 
-	Playlist *Playlist `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
-	Content  *Content  `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
+	Playlist Playlist `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
+	Content  Content  `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE"`
 }

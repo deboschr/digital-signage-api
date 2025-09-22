@@ -16,13 +16,12 @@ func DeviceRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	controller := controllers.NewDeviceController(service)
 
    device := r.Group("/device")
-	device.Use(middlewares.AuthRequired())
 	{
-		device.GET("", controller.GetDevices)
-		device.GET("/:id", controller.GetDevice)
-		device.POST("", controller.CreateDevice)
-		device.PATCH("", controller.UpdateDevice)
-		device.DELETE("/:id", controller.DeleteDevice)
+		device.GET("", middlewares.Authorization("admin", "operator", "management"), controller.GetDevices)
+		device.GET("/:id", middlewares.Authorization("admin", "operator", "management"), controller.GetDevice)
+		device.POST("", middlewares.Authorization("admin", "operator"), controller.CreateDevice)
+		device.PATCH("", middlewares.Authorization("admin", "operator"), controller.UpdateDevice)
+		device.DELETE("/:id", middlewares.Authorization("admin", "operator"), controller.DeleteDevice)
 	}
 
 	r.GET("/device/connect", controller.ConnectDeviceWS)

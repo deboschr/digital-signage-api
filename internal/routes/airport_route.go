@@ -16,12 +16,11 @@ func AirportRoutes(r *gin.RouterGroup, database *gorm.DB) {
 	controller := controllers.NewAirportController(service)
 
 	airport := r.Group("/airport")
-	airport.Use(middlewares.AuthRequired())
 	{
-		airport.GET("", controller.GetAirports)
-		airport.GET("/:id", controller.GetAirport)
-		airport.POST("", controller.CreateAirport)
-		airport.PATCH("", controller.UpdateAirport)
-		airport.DELETE("/:id", controller.DeleteAirport)
+		airport.GET("", middlewares.Authorization("admin", "operator", "management"), controller.GetAirports)
+		airport.GET("/:id", middlewares.Authorization("admin", "operator", "management"), controller.GetAirport)
+		airport.POST("", middlewares.Authorization("admin"), controller.CreateAirport)
+		airport.PATCH("", middlewares.Authorization("admin"), controller.UpdateAirport)
+		airport.DELETE("/:id", middlewares.Authorization("admin"), controller.DeleteAirport)
 	}
 }

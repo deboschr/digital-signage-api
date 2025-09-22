@@ -16,12 +16,11 @@ func ScheduleRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	controller := controllers.NewScheduleController(service)
 
 	schedule := r.Group("/schedule")
-	schedule.Use(middlewares.AuthRequired())
 	{
-		schedule.GET("", controller.GetSchedules)
-		schedule.GET("/:id", controller.GetSchedule)
-		schedule.POST("", controller.CreateSchedule)
-		schedule.PATCH("", controller.UpdateSchedule)
-		schedule.DELETE("/:id", controller.DeleteSchedule)
+		schedule.GET("", middlewares.Authorization("admin", "operator", "management"), controller.GetSchedules)
+		schedule.GET("/:id", middlewares.Authorization("admin", "operator", "management"), controller.GetSchedule)
+		schedule.POST("", middlewares.Authorization("admin", "operator"), controller.CreateSchedule)
+		schedule.PATCH("", middlewares.Authorization("admin", "operator"), controller.UpdateSchedule)
+		schedule.DELETE("/:id", middlewares.Authorization("admin", "operator"), controller.DeleteSchedule)
 	}
 }

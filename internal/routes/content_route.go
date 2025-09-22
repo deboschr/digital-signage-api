@@ -16,11 +16,10 @@ func ContentRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	controller := controllers.NewContentController(service)
 
 	content := r.Group("/content")
-	content.Use(middlewares.AuthRequired())
 	{
-		content.GET("", controller.GetContents)
-		content.GET("/:id", controller.GetContent)
-		content.POST("", controller.CreateContent)
-		content.DELETE("/:id", controller.DeleteContent)
+		content.GET("", middlewares.Authorization("admin", "operator", "management"), controller.GetContents)
+		content.GET("/:id", middlewares.Authorization("admin", "operator", "management"), controller.GetContent)
+		content.POST("", middlewares.Authorization("admin", "operator"), controller.CreateContent)
+		content.DELETE("/:id", middlewares.Authorization("admin", "operator"), controller.DeleteContent)
 	}
 }

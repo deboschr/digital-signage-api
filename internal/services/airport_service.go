@@ -103,11 +103,9 @@ func (s *airportService) GetAirport(id uint) (dto.GetDetailAirportResDTO, error)
 	for _, c := range airport.Schedules {
 		schedule := dto.GetSummaryScheduleResDTO{
 			ScheduleID:		c.ScheduleID,
-			StartDate:		c.StartDate,
-			EndDate:			c.EndDate,
-			StartTime:		c.StartTime,
-			EndTime:			c.EndTime,
-			RepeatPattern:	c.RepeatPattern,
+			// StartTime:		c.StartTime,
+			// EndTime:			c.EndTime,
+			// RepeatPattern:	c.RepeatPattern,
 			IsUrgent:		c.IsUrgent,
 		}
 		schedules = append(schedules, &schedule)

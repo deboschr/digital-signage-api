@@ -16,22 +16,20 @@ func PlaylistRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	controller := controllers.NewPlaylistController(service)
 
 	playlist := r.Group("/playlist")
-	playlist.Use(middlewares.AuthRequired())
 	{
-		playlist.GET("", controller.GetPlaylists)
-		playlist.GET("/:id", controller.GetPlaylist)
-		playlist.POST("", controller.CreatePlaylist)
-		playlist.PATCH("", controller.UpdatePlaylist)
-		playlist.DELETE("/:id", controller.DeletePlaylist)
+		playlist.GET("", middlewares.Authorization("admin", "operator", "management"), controller.GetPlaylists)
+		playlist.GET("/:id", middlewares.Authorization("admin", "operator", "management"), controller.GetPlaylist)
+		playlist.POST("", middlewares.Authorization("admin", "operator"), controller.CreatePlaylist)
+		playlist.PATCH("", middlewares.Authorization("admin", "operator"), controller.UpdatePlaylist)
+		playlist.DELETE("/:id", middlewares.Authorization("admin", "operator"), controller.DeletePlaylist)
 	}
 
 
 	content := r.Group("/playlist/content")
-	content.Use(middlewares.AuthRequired())
 	{
-		content.POST("", controller.CreatePlaylistContent)
-		content.PATCH("", controller.UpdatePlaylistContent)
-		content.DELETE("", controller.DeletePlaylistContent)
+		content.POST("", middlewares.Authorization("admin", "operator"), controller.CreatePlaylistContent)
+		content.PATCH("", middlewares.Authorization("admin", "operator"), controller.UpdatePlaylistContent)
+		content.DELETE("", middlewares.Authorization("admin", "operator"), controller.DeletePlaylistContent)
 	}
 
 }

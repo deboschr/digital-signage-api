@@ -23,12 +23,11 @@ func UserRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	}
 
 	user := r.Group("/user")
-	user.Use(middlewares.AuthRequired())
 	{
-		user.GET("", controller.GetUsers)
-		user.GET("/:id", controller.GetUser)
-		user.POST("", controller.CreateUser)
-		user.PATCH("", controller.UpdateUser)
-		user.DELETE("/:id", controller.DeleteUser)
+		user.GET("", middlewares.Authorization("admin", "operator", "management"), controller.GetUsers)
+		user.GET("/:id", middlewares.Authorization("admin", "operator", "management"), controller.GetUser)
+		user.POST("", middlewares.Authorization("admin"), controller.CreateUser)
+		user.PATCH("", middlewares.Authorization("admin"), controller.UpdateUser)
+		user.DELETE("/:id", middlewares.Authorization("admin"), controller.DeleteUser)
 	}
 }

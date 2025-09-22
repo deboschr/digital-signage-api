@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthRequired() gin.HandlerFunc {
+func Authorization(roles ...string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
 		userData := session.Get("user")
@@ -24,6 +24,20 @@ func AuthRequired() gin.HandlerFunc {
 		var user dto.GetSummaryUserResDTO
 		if err := json.Unmarshal([]byte(userData.(string)), &user); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "invalid session data"})
+			ctx.Abort()
+			return
+		}
+
+		// cek role user apakah masuk ke dalam daftar roles yang diizinkan
+		allowed := false
+		for _, role := range roles {
+			if user.Role == role {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			ctx.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			ctx.Abort()
 			return
 		}
