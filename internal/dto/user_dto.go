@@ -2,7 +2,7 @@ package dto
 
 type GetSummaryUserResDTO struct {
 	UserID    uint   `json:"user_id"`
-	AirportID *uint  `json:"airport_id"`
+	AirportID *uint  `json:"airport_id,omitempty"`
 	Username  string `json:"username"`
 	Role      string `json:"role"`
 }
@@ -18,7 +18,7 @@ type CreateUserReqDTO struct {
 	AirportID *uint  `json:"airport_id" binding:"omitempty,gt=0"`
 	Username  string `json:"username" binding:"required,min=3,max=100"`
 	Password  string `json:"password" binding:"required,min=6,max=255"`
-	Role      string `json:"role" binding:"required,oneof=management admin"`
+	Role      string `json:"role" binding:"required,oneof=admin operator management"`
 }
 
 type UpdateUserReqDTO struct {
@@ -26,5 +26,5 @@ type UpdateUserReqDTO struct {
 	AirportID *uint   `json:"airport_id" binding:"omitempty,gt=0"`
 	Username  *string `json:"username" binding:"omitempty,min=3,max=100"`
 	Password  *string `json:"password" binding:"omitempty,min=6,max=255"`
-	Role      *string `json:"role" binding:"omitempty,oneof=management admin"`
+	Role      *string `json:"role" binding:"omitempty,oneof=admin operator management"`
 }

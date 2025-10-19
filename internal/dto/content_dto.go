@@ -6,6 +6,10 @@ type GetSummaryContentResDTO struct {
 	Type      string `json:"type"`
 	Duration  uint16 `json:"duration"`
 	URL       string `json:"url"`
+	Airport   *struct {
+		AirportID uint `json:"airport_id"`
+		Name      uint `json:"name"`
+	} `json:"airport,omitempty"`
 }
 
 type GetDetailContentResDTO struct {
